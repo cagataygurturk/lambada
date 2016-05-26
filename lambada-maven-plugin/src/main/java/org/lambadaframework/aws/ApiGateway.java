@@ -331,33 +331,34 @@ public class ApiGateway extends AWSTools {
     }
 
 
-    protected String createResource(Resource jerseyResource) {
+    protected String getOrCreateResource(String[] paths) {
+        if (paths.length <= 1) {
+            return getResourceByPath(SLASH_CHARACTER).getId();
+        }
+        if (paths[paths.length-1].equals(SLASH_CHARACTER)) {
+            return getOrCreateResource(Arrays.copyOf(paths, paths.length -1));
+        }
+        com.amazonaws.services.apigateway.model.Resource resource = getResourceByPath(String.join("", paths));
+        if (resource != null) {
+            return resource.getId();
+        }
 
-        com.amazonaws.services.apigateway.model.Resource rootResource = getResourceByPath("/");
-        String parentResource = rootResource.getId();
+        String parentResource = getOrCreateResource(Arrays.copyOf(paths, paths.length -1));
+
+        CreateResourceRequest createResourceInput = new CreateResourceRequest();
+        createResourceInput.withRestApiId(amazonApi.getId());
+        createResourceInput.withPathPart(paths[paths.length-1]);
+        createResourceInput.withParentId(parentResource);
+
+        CreateResourceResult createResourceResult = getApiGatewayClient().createResource(createResourceInput);
+        return createResourceResult.getId();
+    }
+
+    protected String getOrCreateResource(Resource jerseyResource) {
 
         String[] paths = getPathElementsOfResource(jerseyResource);
 
-        for (String path : paths) {
-
-            if (path.equals(SLASH_CHARACTER)) {
-                continue;
-            }
-
-            try {
-                CreateResourceRequest createResourceInput = new CreateResourceRequest();
-                createResourceInput.withRestApiId(amazonApi.getId());
-                createResourceInput.withPathPart(path);
-                createResourceInput.withParentId(parentResource);
-                parentResource = getApiGatewayClient().createResource(createResourceInput).getId();
-            } catch (ConflictException e) {
-                /**
-                 * Resource already exists, do not do nothing
-                 */
-            }
-        }
-
-        return parentResource;
+        return getOrCreateResource(paths);
     }
 
 
@@ -370,7 +371,7 @@ public class ApiGateway extends AWSTools {
             log.info("Resource is being created: " + fullPath);
         }
 
-        String createdId = createResource(jerseyResource);
+        String createdId = getOrCreateResource(jerseyResource);
 
         if (log != null) {
             log.info("Resource created: " + fullPath + " (" + createdId + ")");
