@@ -7,15 +7,11 @@ import org.glassfish.jersey.server.model.Invocable;
 import org.lambadaframework.jaxrs.model.ResourceMethod;
 import org.lambadaframework.runtime.models.Request;
 
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ResourceMethodInvoker {
 
@@ -40,9 +36,7 @@ public class ResourceMethodInvoker {
                                 Request request,
                                 Context lambdaContext)
             throws
-            InvocationTargetException,
-            IllegalAccessException,
-            InstantiationException {
+            Exception {
 
         logger.debug("Request object is: " + request.toString());
 
@@ -56,52 +50,61 @@ public class ResourceMethodInvoker {
 
         List<Object> varargs = new ArrayList<>();
 
+        Object body = request.getRequestBody();
+
+        HashMap map = null;
+
+        if (body != null) {
+            logger.debug("Body type is: " + body.getClass().getName());
+            if (body instanceof HashMap) {
+                map = (HashMap)body;
+            }
+        } else {
+            logger.debug("Body is null");
+        }
+
         for (Parameter parameter : method.getParameters()) {
 
             Class<?> parameterClass = parameter.getType();
 
-            /**
-             * Path parameter
-             */
+            Object paramV = null;
+
+            if (parameter.isAnnotationPresent(DefaultValue.class)) {
+                DefaultValue annotation = parameter.getAnnotation(DefaultValue.class);
+                paramV = annotation.value();
+            }
+
             if (parameter.isAnnotationPresent(PathParam.class)) {
                 PathParam annotation = parameter.getAnnotation(PathParam.class);
-                varargs.add(toObject(
-                        (String) request.getPathParameters().get(annotation.value()), parameterClass
-                        )
-                );
-
-            }
-
-
-            /**
-             * Query parameter
-             */
-            if (parameter.isAnnotationPresent(QueryParam.class)) {
+                paramV = (toObject((String) request.getPathParameters().get(annotation.value()), parameterClass));
+            } else if (parameter.isAnnotationPresent(QueryParam.class)) {
                 QueryParam annotation = parameter.getAnnotation(QueryParam.class);
-                varargs.add(toObject(
-                        (String) request.getQueryParams().get(annotation.value()), parameterClass
-                        )
-                );
-            }
-
-            /**
-             * Query parameter
-             */
-            if (parameter.isAnnotationPresent(HeaderParam.class)) {
+                paramV = (toObject((String) request.getQueryParams().get(annotation.value()), parameterClass));
+            } else if (parameter.isAnnotationPresent(HeaderParam.class)) {
                 HeaderParam annotation = parameter.getAnnotation(HeaderParam.class);
-                varargs.add(toObject(
-                        (String) request.getRequestHeaders().get(annotation.value()), parameterClass
-                        )
-                );
-            }
+                paramV = (toObject((String) request.getRequestHeaders().get(annotation.value()), parameterClass));
+            } else if (parameter.isAnnotationPresent(FormParam.class)) {
+                logger.info("Got Form Parameter");
+                FormParam annotation = parameter.getAnnotation(FormParam.class);
 
-
-            /**
-             * Lambda Context can be automatically injected
-             */
-            if (parameter.getType() == Context.class) {
-                varargs.add(lambdaContext);
+                if (body instanceof HashMap) {
+                    paramV = map.get(annotation.value());
+                }
+            } else if (parameter.getType() == Context.class) { /* Lambda Context can be automatically injected */
+                paramV = (lambdaContext);
+            } else {
+                logger.info("Got fallback for Parameter: " + parameter.getName()); // TODO not working.
+                if (body instanceof HashMap) {
+                    paramV = map.get(parameter.getName());
+                } else if (body != null && parameter.getClass() == body.getClass()) {
+                    logger.info("Body is param class: " + parameterClass.getName());
+                    paramV = body; // TODO fix
+                } else {
+                    logger.info("Body is param class: " + parameterClass.getName());
+                    throw new Exception("Parameter mismatch");
+                }
             }
+            varargs.add(paramV);
         }
 
         return method.invoke(instance, varargs.toArray());
