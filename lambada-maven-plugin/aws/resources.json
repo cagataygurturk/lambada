@@ -33,6 +33,13 @@
       "Type": "CommaDelimitedList",
       "Default": "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
     },
+    "LambdaHandler": {
+      "Description": "AWS Lambda Function entry point.",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "512",
+      "Default": "org.lambadaframework.runtime.Handler"
+    },
     "SecurityGroupIds": {
       "Description": "Lambda VPC Security Group Ids",
       "Type": "CommaDelimitedList",
@@ -193,7 +200,9 @@
     "LambdaFunction": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
-        "Handler": "org.lambadaframework.runtime.Handler",
+        "Handler": {
+          "Ref": "LambdaHandler"
+        },
         "Role": {
           "Fn::GetAtt": [
             "LambadaExecutionRole",

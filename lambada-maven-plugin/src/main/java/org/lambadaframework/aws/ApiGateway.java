@@ -48,7 +48,7 @@ public class ApiGateway extends AWSTools {
             "  \"package\": \"" + PACKAGE_VARIABLE + "\",\n" +
             "  \"pathtemplate\": \"$context.resourcePath\",\n" +
             "  \"method\": \"$context.httpMethod\",\n" +
-            "  \"requestbody\": $input.json('$'),\n" +
+            "  \"requestbody\": \"$util.escapeJavaScript($input.json('$'))\",\n" +
             "      #foreach($elem in $input.params().keySet())\n" +
             "        \"$elem\": {\n" +
             "            #foreach($innerElem in $input.params().get($elem).keySet())\n" +

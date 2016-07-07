@@ -8,7 +8,9 @@ import org.lambadaframework.jaxrs.model.ResourceMethod;
 import org.lambadaframework.runtime.models.Request;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -63,6 +65,12 @@ public class ResourceMethodInvoker {
             logger.debug("Body is null");
         }
 
+
+        /**
+         * Get consumes annotation from handler method
+         */
+        Consumes consumesAnnotation = method.getAnnotation(Consumes.class);
+
         for (Parameter parameter : method.getParameters()) {
 
             Class<?> parameterClass = parameter.getType();
@@ -74,6 +82,9 @@ public class ResourceMethodInvoker {
                 paramV = annotation.value();
             }
 
+            /**
+             * Path parameter
+             */
             if (parameter.isAnnotationPresent(PathParam.class)) {
                 PathParam annotation = parameter.getAnnotation(PathParam.class);
                 paramV = (toObject((String) request.getPathParameters().get(annotation.value()), parameterClass));
@@ -103,10 +114,35 @@ public class ResourceMethodInvoker {
                     logger.info("Body is param class: " + parameterClass.getName());
                     throw new Exception("Parameter mismatch");
                 }
+
+                if (consumesAnnotation != null && consumesSpecificType(consumesAnnotation, MediaType.APPLICATION_JSON)
+                    && parameter.getType() == String.class) {
+                //Pass raw request body
+                varargs.add(request.getRequestBody());
+            }
+
+
+            /**
+             * Lambda Context can be automatically injected
+             */
+            if (parameter.getType() == Context.class) {
+                varargs.add(lambdaContext);
             }
             varargs.add(paramV);
         }
 
         return method.invoke(instance, varargs.toArray());
+    }
+
+    private static boolean consumesSpecificType(Consumes annotation, String type) {
+
+        String[] consumingTypes = annotation.value();
+        for (String consumingType : consumingTypes) {
+            if (type.equals(consumingType)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

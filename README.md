@@ -99,16 +99,17 @@ The configuration values should be present under maven plugin's configuration.
 
 All the possible parameters are as follows:
 
-| Parameter                     | Default value | Required? |
-|-------------------------------|---------------|-----------|
-| packageName                   | N/A           | Yes       |
-| regionToDeploy                | N/A           | Yes       |
-| stageToDeploy                 | N/A           | Yes       |
-| lambdaMaximumExecutionTime    | 3             | No        |
-| lambdaMemorySize              | 128           | No        |
-| lambdaExecutionRolePolicies   | N/A           | No        |
-| lambdaSubnetIds               | N/A           | No        |
-| lambdaSecurityGroups          | N/A           | No        |
+| Parameter                     | Default value                        | Required? |
+|-------------------------------|--------------------------------------|-----------|
+| packageName                   | N/A                                  | Yes       |
+| regionToDeploy                | N/A                                  | Yes       |
+| stageToDeploy                 | N/A                                  | Yes       |
+| lambdaMaximumExecutionTime    | 3                                    | No        |
+| lambdaMemorySize              | 128                                  | No        |
+| lambdaExecutionRolePolicies   | N/A                                  | No        |
+| lambdaSubnetIds               | N/A                                  | No        |
+| lambdaSecurityGroups          | N/A                                  | No        |
+| lambdaHandler                 | org.lambadaframework.runtime.Handler | No        |
 
 Below you can find detailed information about the configuration parameters:
 
@@ -145,7 +146,10 @@ Below you can find detailed information about the configuration parameters:
         <params>sg-6c251d42</params>
     </lambdaSecurityGroups>
     ```
-   
+- **lambdaHandler:** The entrypoint for the lambda. You will more than likely want to
+leave this as the default value so that integration with API Gateway is automatic. Only
+override this if you are using the lambada-maven-plugin to deploy your own Lambda functions.
+
 ## Other projects
 
 You might want to look at other projects about serverless architecture:
@@ -163,4 +167,4 @@ You might want to look at other projects about serverless architecture:
 
 ## Contributing:
 
-Feel free to send a PR for any contribution. We'll be publishing a Roadmap in the future.
+Feel free to send a PR to `develop` branch for any contribution. We'll be publishing a Roadmap in the future.

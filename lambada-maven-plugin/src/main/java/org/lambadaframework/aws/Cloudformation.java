@@ -21,6 +21,11 @@ public class Cloudformation extends AWSTools {
             "      \"Default\": \"128\",\n" +
             "      \"Description\": \"AWS Lambda Function Maximum Allowed Memory.\"\n" +
             "    },\n" +
+            "    \"LambdaHandler\": {\n" +
+            "      \"Type\": \"String\",\n" +
+            "      \"Default\": \"org.lambadaframework.runtime.Handler\",\n" +
+            "      \"Description\": \"AWS Lambda Function entry point.\"\n" +
+            "    },\n" +
             "    \"LambdaMaximumExecutionTime\": {\n" +
             "      \"Type\": \"Number\",\n" +
             "      \"Default\": \"3\",\n" +
@@ -207,7 +212,9 @@ public class Cloudformation extends AWSTools {
             "    \"LambdaFunction\": {\n" +
             "      \"Type\": \"AWS::Lambda::Function\",\n" +
             "      \"Properties\": {\n" +
-            "        \"Handler\": \"org.lambadaframework.runtime.Handler\",\n" +
+            "        \"Handler\": {\n" +
+            "          \"Ref\": \"LambdaHandler\"\n" +
+            "        },\n" +
             "        \"Role\": {\n" +
             "          \"Fn::GetAtt\": [\n" +
             "            \"LambadaExecutionRole\",\n" +
