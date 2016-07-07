@@ -12,6 +12,9 @@ public class LambdaLogger {
 
     private static Level globalLogLevel = Level.ALL;
 
+    private LambdaLogger() {
+    }
+
     private static Appender getAppender() {
         if (appender == null) {
             PatternLayout patternLayout = new PatternLayout();

@@ -82,7 +82,7 @@ public final class SimpleStorageServiceWagonIntegrationTest {
     }
 
     private List<String> getBuckets() {
-        List<String> buckets = new ArrayList<String>();
+        List<String> buckets = new ArrayList<>();
 
         String value = System.getProperty("buckets");
         if (value != null) {

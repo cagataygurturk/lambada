@@ -145,6 +145,14 @@ Below you can find detailed information about the configuration parameters:
         <params>sg-6c251d42</params>
     </lambdaSecurityGroups>
     ```
+   
+## Other projects
+
+You might want to look at other projects about serverless architecture:
+
+ - [Serverless](https://github.com/serverless/serverless): Reputable framework to deploy serverless projects in Node.JS
+ - [ingenieux/lambada](https://github.com/ingenieux/lambada): Another JAVA framework with a similar name with Lambada Framework. It uses a slightly different approach than Lambada Framework to develop serverless projects.
+ - [Zappa](https://github.com/Miserlou/Zappa): Develop and deploy serverless applications with Python.
 
 ## Links:
 

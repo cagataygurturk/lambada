@@ -125,7 +125,7 @@ public class Deployment {
     }
 
     public Collection<Parameter> getCloudFormationParameters() {
-        Collection<Parameter> parameters = new ArrayList<Parameter>();
+        Collection<Parameter> parameters = new ArrayList<>();
         for (Map.Entry<Object, Object> e : properties.entrySet()) {
             parameters.add(new Parameter().withParameterKey((String) e.getKey()).withParameterValue((String) e.getValue()));
         }
