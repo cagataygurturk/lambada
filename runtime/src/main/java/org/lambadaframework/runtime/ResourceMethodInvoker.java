@@ -29,14 +29,28 @@ public class ResourceMethodInvoker {
     private ResourceMethodInvoker() {
     }
 
-    private static Object toObject(String value, Class clazz) {
-        if (Integer.class == clazz || Integer.TYPE == clazz) return Integer.parseInt(value);
-        if (Long.class == clazz || Long.TYPE == clazz) return Long.parseLong(value);
-        if (Float.class == clazz || Float.TYPE == clazz) return Float.parseFloat(value);
-        if (Boolean.class == clazz || Boolean.TYPE == clazz) return Boolean.parseBoolean(value);
-        if (Double.class == clazz || Double.TYPE == clazz) return Double.parseDouble(value);
-        if (Byte.class == clazz || Byte.TYPE == clazz) return Byte.parseByte(value);
-        if (Short.class == clazz || Short.TYPE == clazz) return Short.parseShort(value);
+    private static Object toObject(String value, Class<?> clazz) {
+        if (clazz == Integer.class || Integer.TYPE == clazz) {
+            return Integer.parseInt(value);
+        }
+        if (clazz == Long.class || Long.TYPE == clazz) {
+            return Long.parseLong(value);
+        }
+        if (clazz == Float.class || Float.TYPE == clazz) {
+            return Float.parseFloat(value);
+        }
+        if (clazz == Boolean.class || Boolean.TYPE == clazz) {
+            return Boolean.parseBoolean(value);
+        }
+        if (clazz == Double.class || Double.TYPE == clazz) {
+            return Double.parseDouble(value);
+        }
+        if (clazz == Byte.class || Byte.TYPE == clazz) {
+            return Byte.parseByte(value);
+        }
+        if (clazz == Short.class || Short.TYPE == clazz) {
+            return Short.parseShort(value);
+        }
         return value;
     }
 
@@ -44,15 +58,17 @@ public class ResourceMethodInvoker {
                                 Request request,
                                 Context lambdaContext)
             throws
-            Exception {
+            InvocationTargetException,
+            IllegalAccessException,
+            InstantiationException {
 
-        logger.debug("Request object is: " + request.toString());
+        logger.debug("Request object is: " + request);
 
 
         Invocable invocable = resourceMethod.getInvocable();
 
         Method method = invocable.getHandlingMethod();
-        Class clazz = invocable.getHandler().getHandlerClass();
+        Class<?> clazz = invocable.getHandler().getHandlerClass();
 
         Object instance = clazz.newInstance();
 
@@ -83,15 +99,15 @@ public class ResourceMethodInvoker {
              */
             if (parameter.isAnnotationPresent(PathParam.class)) {
                 PathParam annotation = parameter.getAnnotation(PathParam.class);
-                paramV = (toObject((String) request.getPathParameters().get(annotation.value()), parameterClass));
+                paramV = (toObject(request.getPathParameters().get(annotation.value()), parameterClass));
                 logger.info("Path param found.");
             } else if (parameter.isAnnotationPresent(QueryParam.class)) {
                 QueryParam annotation = parameter.getAnnotation(QueryParam.class);
-                paramV = (toObject((String) request.getQueryParams().get(annotation.value()), parameterClass));
+                paramV = (toObject(request.getQueryParams().get(annotation.value()), parameterClass));
                 logger.info("Query param found.");
             } else if (parameter.isAnnotationPresent(HeaderParam.class)) {
                 HeaderParam annotation = parameter.getAnnotation(HeaderParam.class);
-                paramV = (toObject((String) request.getRequestHeaders().get(annotation.value()), parameterClass));
+                paramV = (toObject(request.getRequestHeaders().get(annotation.value()), parameterClass));
                 logger.info("Header param found.");
             } else if (parameter.isAnnotationPresent(FormParam.class)) {
                 logger.info("Got Form Parameter");

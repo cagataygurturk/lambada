@@ -13,7 +13,7 @@ import java.util.Map;
  * <p>
  * http://docs.aws.amazon.com/lambda/latest/dg/java-handler-io-type-pojo.html
  */
-public class Request<T> implements Serializable {
+public class Request implements Serializable {
 
     public enum RequestMethod {
         GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE;
@@ -37,7 +37,7 @@ public class Request<T> implements Serializable {
     /**
      * Request body
      */
-    protected T requestBody;
+    protected String requestBody;
 
     /**
      * Query parameters
@@ -105,12 +105,12 @@ public class Request<T> implements Serializable {
     }
 
 
-    public T getRequestBody() {
+    public String getRequestBody() {
         return requestBody;
     }
 
     @JsonProperty("requestBody")
-    public Request setRequestbody(T requestBody) {
+    public Request setRequestbody(String requestBody) {
         this.requestBody = requestBody;
         return this;
     }

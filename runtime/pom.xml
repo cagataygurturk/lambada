@@ -54,6 +54,13 @@
         </dependency>
 
         <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.7.5</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.lambadaframework</groupId>
             <artifactId>stub-handlers</artifactId>
             <version>${project.parent.version}</version>

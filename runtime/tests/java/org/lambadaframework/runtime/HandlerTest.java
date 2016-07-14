@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.CognitoIdentity;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.glassfish.jersey.server.model.Invocable;
 import org.glassfish.jersey.server.model.MethodHandler;
 import org.glassfish.jersey.server.model.ResourceMethod;
@@ -18,6 +19,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
@@ -32,6 +34,12 @@ public class HandlerTest {
     public static class Entity {
         public long id;
         public String query1;
+        public String requestBody;
+    }
+
+
+    public static class NewEntityRequest {
+        public long id;
     }
 
     @Path("/")
@@ -66,6 +74,32 @@ public class HandlerTest {
                     .entity(entity)
                     .build();
         }
+
+        @POST
+        @Path("{id}/jsonstring")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public javax.ws.rs.core.Response createEntityWithJsonBody(
+                String jsonString
+        ) {
+
+            return javax.ws.rs.core.Response
+                    .status(201)
+                    .entity(jsonString)
+                    .build();
+        }
+
+        @POST
+        @Path("{id}/jsonobject")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public javax.ws.rs.core.Response createEntityWithJsonObject(
+                NewEntityRequest jsonEntity
+        ) {
+
+            return javax.ws.rs.core.Response
+                    .status(201)
+                    .entity(jsonEntity)
+                    .build();
+        }
     }
 
     private Router getMockRouter(String methodName, Class<?>... parameterTypes) throws NoSuchMethodException {
@@ -79,7 +113,8 @@ public class HandlerTest {
                 .andReturn(MethodHandler.create(DummyController.class))
                 .anyTimes();
 
-        org.lambadaframework.jaxrs.model.ResourceMethod mockResourceMethod = PowerMock.createMock(org.lambadaframework.jaxrs.model.ResourceMethod.class);
+        org.lambadaframework.jaxrs.model.ResourceMethod mockResourceMethod = PowerMock.createMock(org.lambadaframework.jaxrs.model.ResourceMethod
+                .class);
         expect(mockResourceMethod.getInvocable())
                 .andReturn(mockInvocable)
                 .anyTimes();
@@ -166,7 +201,7 @@ public class HandlerTest {
                 "  \"package\": \"org.lambadaframework\",\n" +
                 "  \"pathTemplate\": \"/{id}\",\n" +
                 "  \"method\": \"GET\",\n" +
-                "  \"requestBody\": {},\n" +
+                "  \"requestBody\": \"{}\",\n" +
                 "  \"path\": {\n" +
                 "    \"id\": \"123\"\n" +
                 "  },\n" +
@@ -194,9 +229,9 @@ public class HandlerTest {
 
         Request exampleRequest = getRequest("{\n" +
                 "  \"package\": \"org.lambadaframework\",\n" +
-                "  \"pathTemplate\": \"/{id}\",\n" +
+                "  \"pathTemplate\": \"/{id}/jsonstring\",\n" +
                 "  \"method\": \"POST\",\n" +
-                "  \"requestBody\": {},\n" +
+                "  \"requestBody\": \"{}\",\n" +
                 "  \"path\": {\n" +
                 "    \"id\": \"123\"\n" +
                 "  },\n" +
@@ -219,5 +254,62 @@ public class HandlerTest {
 
     }
 
+
+    @Test
+    public void testWithJsonBodyAsString201Result()
+            throws Exception {
+
+        Request exampleRequest = getRequest("{\n" +
+                "  \"package\": \"org.lambadaframework\",\n" +
+                "  \"pathTemplate\": \"/{id}\",\n" +
+                "  \"method\": \"POST\",\n" +
+                "  \"requestBody\": \"test\",\n" +
+                "  \"path\": {\n" +
+                "    \"id\": \"123\"\n" +
+                "  },\n" +
+                "  \"querystring\": {\n" +
+                "        \"query1\": \"test3\",\n" +
+                "    \"query2\": \"test\"\n" +
+                "  },\n" +
+                "  \"header\": {}\n" +
+                "}");
+
+
+        Handler handler = new Handler();
+        handler.setRouter(getMockRouter("createEntityWithJsonBody", String.class));
+        Response response = handler.handleRequest(exampleRequest, getContext());
+
+        assertEquals("201", response.getErrorMessage());
+        assertEquals("test", response.getEntity());
+    }
+
+
+    @Test
+    public void testWithJsonAsObject201Result()
+            throws Exception {
+
+        Request exampleRequest = getRequest("{\n" +
+                "  \"package\": \"org.lambadaframework\",\n" +
+                "  \"pathTemplate\": \"/{id}\",\n" +
+                "  \"method\": \"POST\",\n" +
+                "  \"requestBody\": \"{\\\"id\\\":1}\",\n" +
+                "  \"path\": {\n" +
+                "    \"id\": \"123\"\n" +
+                "  },\n" +
+                "  \"querystring\": {\n" +
+                "        \"query1\": \"test3\",\n" +
+                "    \"query2\": \"test\"\n" +
+                "  },\n" +
+                "  \"header\": {}\n" +
+                "}");
+
+
+        Handler handler = new Handler();
+        handler.setRouter(getMockRouter("createEntityWithJsonObject", NewEntityRequest.class));
+        Response response = handler.handleRequest(exampleRequest, getContext());
+
+        assertEquals("201", response.getErrorMessage());
+        assertEquals(1, ((NewEntityRequest) response.getEntity()).id);
+    }
 
 }

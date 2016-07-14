@@ -1,7 +1,12 @@
 package org.lambadaframework.aws;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonWebServiceRequest;
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.retry.PredefinedRetryPolicies;
+import com.amazonaws.retry.RetryPolicy;
 import com.amazonaws.services.apigateway.AmazonApiGateway;
 import com.amazonaws.services.apigateway.AmazonApiGatewayClient;
 import com.amazonaws.services.apigateway.model.*;
@@ -15,7 +20,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class ApiGateway extends AWSTools {
@@ -36,6 +43,7 @@ public class ApiGateway extends AWSTools {
             400,
             401,
             403,
+            404,
             500
     };
 
@@ -85,7 +93,27 @@ public class ApiGateway extends AWSTools {
             return apiGatewayClient;
         }
 
-        return apiGatewayClient = new AmazonApiGatewayClient(getAWSCredentialsProvideChain()).withRegion(Region.getRegion(Regions.fromName(deployment.getRegion())));
+        RetryPolicy.RetryCondition retryCondition = new RetryPolicy.RetryCondition() {
+
+            @Override
+            public boolean shouldRetry(AmazonWebServiceRequest amazonWebServiceRequest, AmazonClientException amazonClientException, int i) {
+                if (amazonClientException instanceof TooManyRequestsException) {
+                    return true;
+                }
+                return PredefinedRetryPolicies.DEFAULT_RETRY_CONDITION.shouldRetry(amazonWebServiceRequest,
+                        amazonClientException, i);
+            }
+        };
+
+        RetryPolicy retryPolicy = new RetryPolicy(retryCondition,
+                PredefinedRetryPolicies.DEFAULT_BACKOFF_STRATEGY,
+                10, true);
+
+        ClientConfiguration clientConfig = new ClientConfiguration()
+                .withRetryPolicy(retryPolicy);
+
+        apiGatewayClient = new AmazonApiGatewayClient(getAWSCredentialsProvideChain(), clientConfig).withRegion(Region.getRegion(Regions.fromName(deployment.getRegion())));
+        return apiGatewayClient;
     }
 
     /**
@@ -96,14 +124,16 @@ public class ApiGateway extends AWSTools {
      */
     public void deployEndpoints()
             throws IOException {
-        if (log != null)
+
+        if (log != null) {
             log.info("API Gateway deployment is being initialized.");
+        }
 
         List<Resource> resources = getResources();
 
-        if (log != null)
+        if (log != null) {
             log.info(resources.size() + " resources found in JAR File.");
-
+        }
 
         createOrUpdateApi();
         walkThroughResources(resources);
@@ -241,8 +271,9 @@ public class ApiGateway extends AWSTools {
             throws IOException {
         String jarFileLocation = deployment.getJarFileLocationOnLocalFileSystem();
 
-        if (log != null)
+        if (log != null) {
             log.info("JAR File is being scanned. Used JAR File location: " + jarFileLocation + " Package: " + deployment.getPackageName());
+        }
 
         JAXRSParser parser = new JAXRSParser().withJarFile(jarFileLocation, deployment.getPackageName());
         return parser.scan();
@@ -251,7 +282,7 @@ public class ApiGateway extends AWSTools {
 
     protected void walkThroughResources(List<Resource> resources) {
 
-        if (resources.size() == 0) {
+        if (resources.isEmpty()) {
             if (log != null) {
                 log.info("Not found any resources to deploy");
             }
@@ -344,7 +375,6 @@ public class ApiGateway extends AWSTools {
 
     protected boolean deployResource(Resource jerseyResource) {
 
-        com.amazonaws.services.apigateway.model.Resource amazonApiResource;
         String fullPath = jerseyResource.getPath();
 
         if (log != null) {
@@ -357,7 +387,7 @@ public class ApiGateway extends AWSTools {
             log.info("Resource created: " + fullPath + " (" + createdId + ")");
         }
 
-        amazonApiResource = getResourceByPath(fullPath);
+        com.amazonaws.services.apigateway.model.Resource amazonApiResource = getResourceByPath(fullPath);
         deployMethods(jerseyResource, amazonApiResource);
         return true;
     }
@@ -396,11 +426,6 @@ public class ApiGateway extends AWSTools {
                                 .withResourceId(apiGatewayResource.getId()));
 
 
-                /**
-                 * To prevent TooManyRequestsException errors from API Gateway
-                 */
-                Thread.sleep(1000);
-
                 if (log != null) {
                     log.info(methodToDelete + " method deleted on resource id " + apiGatewayResource.getId());
                 }
@@ -408,13 +433,6 @@ public class ApiGateway extends AWSTools {
                 /**
                  * Do nothing, continue
                  */
-            } catch (InterruptedException e) {
-
-                if (log != null) {
-                    log.error("A system error occured. Recovering");
-                }
-
-                deployMethods(jerseyResource, apiGatewayResource);
             }
         }
 
@@ -448,6 +466,7 @@ public class ApiGateway extends AWSTools {
                     .withType(IntegrationType.AWS)
                     .withUri(getFunctionArnForApiGateway())
                     .withIntegrationHttpMethod(INVOCATION_METHOD)
+                    .withPassthroughBehavior("NEVER")
                     .withRequestTemplates(getInputTemplate(method))
                     .withRequestParameters(getRequestParametersIntegration(method))
             );

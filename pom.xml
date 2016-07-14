@@ -9,7 +9,7 @@
     <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <url>http://www.example.com/example-application</url>
+    <url>http://www.lambadaframework.org</url>
     <description>Lambada Framework lets you to build serverless REST API's with JAVA. It implements the JAX-RS API and
         deploys your application easily to AWS Lambda and API Gateway
     </description>
@@ -36,7 +36,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <aws-sdk.version>1.11.9</aws-sdk.version>
+        <aws-sdk.version>1.11.13</aws-sdk.version>
         <junit.version>4.12</junit.version>
         <logback.version>1.1.7</logback.version>
         <mockito.version>1.10.19</mockito.version>
