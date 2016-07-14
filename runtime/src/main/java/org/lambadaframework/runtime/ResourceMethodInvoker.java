@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.model.Invocable;
 import org.lambadaframework.jaxrs.model.ResourceMethod;
 import org.lambadaframework.runtime.models.Request;
+import org.lambadaframework.runtime.exceptions.InvalidParameterException;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -60,7 +61,9 @@ public class ResourceMethodInvoker {
             throws
             InvocationTargetException,
             IllegalAccessException,
-            InstantiationException {
+            InstantiationException,
+            InvalidParameterException,
+            IOException {
 
         logger.debug("Request object is: " + request);
 
@@ -99,15 +102,15 @@ public class ResourceMethodInvoker {
              */
             if (parameter.isAnnotationPresent(PathParam.class)) {
                 PathParam annotation = parameter.getAnnotation(PathParam.class);
-                paramV = (toObject(request.getPathParameters().get(annotation.value()), parameterClass));
+                paramV = toObject(request.getPathParameters().get(annotation.value()), parameterClass);
                 logger.info("Path param found.");
             } else if (parameter.isAnnotationPresent(QueryParam.class)) {
                 QueryParam annotation = parameter.getAnnotation(QueryParam.class);
-                paramV = (toObject(request.getQueryParams().get(annotation.value()), parameterClass));
+                paramV = toObject(request.getQueryParams().get(annotation.value()), parameterClass);
                 logger.info("Query param found.");
             } else if (parameter.isAnnotationPresent(HeaderParam.class)) {
                 HeaderParam annotation = parameter.getAnnotation(HeaderParam.class);
-                paramV = (toObject(request.getRequestHeaders().get(annotation.value()), parameterClass));
+                paramV = toObject(request.getRequestHeaders().get(annotation.value()), parameterClass);
                 logger.info("Header param found.");
             } else if (parameter.isAnnotationPresent(FormParam.class)) {
                 logger.info("Got Form Parameter");
@@ -123,7 +126,7 @@ public class ResourceMethodInvoker {
             } else {
                 logger.info("Got fallback for Parameter: " + parameter.getName()); // TODO not working.
                 logger.info("Body is param class: " + parameterClass.getName());
-                throw new Exception("Parameter mismatch");
+                throw new InvalidParameterException("Parameter mismatch");
             }
             varargs.add(paramV);
         }
@@ -131,10 +134,10 @@ public class ResourceMethodInvoker {
         return method.invoke(instance, varargs.toArray());
     }
 
-    private static Object consumeAnnotation(Request request, Consumes consumesAnnotation, ObjectMapper objectMapper, Parameter parameter, Class<?> parameterClass, Object paramV) throws java.io.IOException {
+    private static Object consumeAnnotation(Request request, Consumes consumesAnnotation, ObjectMapper objectMapper, Parameter parameter, Class<?> parameterClass, Object paramV) throws IOException {
         if (consumesSpecificType(consumesAnnotation, MediaType.APPLICATION_JSON)) {
             logger.info("Consume json");
-            paramV = objectMapper.readValue((String) request.getRequestBody(), parameterClass);
+            paramV = objectMapper.readValue(request.getRequestBody(), parameterClass);
         } else if (consumesSpecificType(consumesAnnotation, MediaType.TEXT_PLAIN)) {
             logger.info("Consume plain text");
             paramV = request.getRequestBody();
@@ -147,36 +150,25 @@ public class ResourceMethodInvoker {
     }
 
     private static Object getFormValue(Request request, Class<?> parameterClass, Object paramV, String name) throws IOException {
-        if (request.getRequestBody() instanceof String) {
-            logger.info("Form value decode from url encoded from data: " + (String) request.getRequestBody());
-            logger.info("looking for key: " + name);
-            // Seems due to the api gateway change it's coming in as JSON regardless.
-            ObjectMapper objectMapper = new ObjectMapper();
-            String requestBodyDejsoned = objectMapper.readValue((String) request.getRequestBody(), String.class);
-            List<NameValuePair> formParams = URLEncodedUtils.parse(requestBodyDejsoned, Charset.forName("UTF-8"));
-            List<String> strings = new ArrayList<String>();
-            for (NameValuePair each : formParams) {
-                if (each.getName().equals(name)) {
-                    strings.add(each.getValue());
-                }
+        logger.info("Form value decode from url encoded from data: " + (String) request.getRequestBody());
+        logger.info("looking for key: " + name);
+        // Seems due to the api gateway change it's coming in as JSON regardless.
+        ObjectMapper objectMapper = new ObjectMapper();
+        String requestBodyDejsoned = objectMapper.readValue(request.getRequestBody(), String.class);
+        List<NameValuePair> formParams = URLEncodedUtils.parse(requestBodyDejsoned, Charset.forName("UTF-8"));
+        List<String> strings = new ArrayList<String>();
+        for (NameValuePair each : formParams) {
+            if (each.getName().equals(name)) {
+                strings.add(each.getValue());
             }
-            if (!Collection.class.isAssignableFrom(parameterClass)) {
-                if (strings.size() > 0) {
-                    paramV = objectMapper.convertValue(strings.get(0), parameterClass);
-                }
-            } else {
-                // Jackson's Object mapper comes with a good transformer
-                paramV = objectMapper.convertValue(strings, parameterClass);
-            }
-        } else if (request.getRequestBody() instanceof HashMap) {
-            logger.info("Form value decode from url encoded from hash map");
-            if (request.getRequestBody() instanceof HashMap) {
-                HashMap map = null;
-                map = (HashMap)request.getRequestBody();
-                paramV = map.get(name);
+        }
+        if (!Collection.class.isAssignableFrom(parameterClass)) {
+            if (strings.size() > 0) {
+                paramV = objectMapper.convertValue(strings.get(0), parameterClass);
             }
         } else {
-            logger.error("Unknown from value request. Body type is: " + request.getRequestBody().getClass().getName());
+            // Jackson's Object mapper comes with a good transformer
+            paramV = objectMapper.convertValue(strings, parameterClass);
         }
         return paramV;
     }
