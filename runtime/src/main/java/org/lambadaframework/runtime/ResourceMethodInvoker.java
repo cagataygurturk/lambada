@@ -136,7 +136,7 @@ public class ResourceMethodInvoker {
 
     private static Object consumeAnnotation(Request request, Consumes consumesAnnotation, ObjectMapper objectMapper, Parameter parameter, Class<?> parameterClass, Object paramV) throws IOException {
         if (consumesSpecificType(consumesAnnotation, MediaType.APPLICATION_JSON)) {
-            logger.info("Consume json");
+            logger.info("Consume json: " + request.getRequestBody());
             paramV = objectMapper.readValue(request.getRequestBody(), parameterClass);
         } else if (consumesSpecificType(consumesAnnotation, MediaType.TEXT_PLAIN)) {
             logger.info("Consume plain text");

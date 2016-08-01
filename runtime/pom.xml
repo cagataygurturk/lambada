@@ -62,5 +62,10 @@
     </dependencies>
     <build>
         <testSourceDirectory>${project.basedir}/tests/java</testSourceDirectory>
+        <testResources>
+            <testResource>
+                <directory>tests/resources</directory>
+            </testResource>
+        </testResources>
     </build>
 </project>
