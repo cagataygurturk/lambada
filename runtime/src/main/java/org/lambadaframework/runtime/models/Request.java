@@ -9,7 +9,8 @@ import java.util.Map;
 /**
  * Request class is a POJO.
  * <p>
- * Event json that lambda function got is automatically serialized to this POJO. For more details see Lambda documentation:
+ * Event json that lambda function got is automatically serialized to this POJO.
+ * For more details see Lambda documentation:
  * <p>
  * http://docs.aws.amazon.com/lambda/latest/dg/java-handler-io-type-pojo.html
  */
@@ -37,7 +38,7 @@ public class Request implements Serializable {
     /**
      * Request body
      */
-    protected String requestBody;
+    protected Object requestBody;
 
     /**
      * Query parameters
@@ -64,12 +65,10 @@ public class Request implements Serializable {
      */
     protected MediaType producedMediaType = MediaType.APPLICATION_JSON_TYPE;
 
-
     private MediaType getMediaTypeFromString(String mimeType) {
         String[] m = mimeType.split("/");
         return new MediaType(m[0], m[1]);
     }
-
 
     @JsonProperty("method")
     public Request setMethod(RequestMethod method) {
@@ -77,11 +76,9 @@ public class Request implements Serializable {
         return this;
     }
 
-
     public RequestMethod getMethod() {
         return method;
     }
-
 
     public String getPackage() {
         return packageName;
@@ -93,7 +90,6 @@ public class Request implements Serializable {
         return this;
     }
 
-
     public String getPathTemplate() {
         return pathTemplate;
     }
@@ -104,13 +100,12 @@ public class Request implements Serializable {
         return this;
     }
 
-
-    public String getRequestBody() {
+    public Object getRequestBody() {
         return requestBody;
     }
 
     @JsonProperty("requestBody")
-    public Request setRequestbody(String requestBody) {
+    public Request setRequestbody(Object requestBody) {
         this.requestBody = requestBody;
         return this;
     }
@@ -124,7 +119,6 @@ public class Request implements Serializable {
         this.consumedMediaType = getMediaTypeFromString(consumedMediaType);
         return this;
     }
-
 
     public MediaType getProducedMediaType() {
         return producedMediaType;
@@ -168,16 +162,9 @@ public class Request implements Serializable {
 
     @Override
     public String toString() {
-        return "Request{" +
-                "packageName='" + packageName + '\'' +
-                ", method=" + method +
-                ", pathTemplate='" + pathTemplate + '\'' +
-                ", requestBody=" + requestBody +
-                ", pathParameters=" + pathParameters +
-                ", queryParams=" + queryParams +
-                ", requestHeaders=" + requestHeaders +
-                ", consumedMediaType=" + consumedMediaType +
-                ", producedMediaType=" + producedMediaType +
-                '}';
+        return "Request{" + "packageName='" + packageName + '\'' + ", method=" + method + ", pathTemplate='"
+                + pathTemplate + '\'' + ", requestBody=" + requestBody + ", pathParameters=" + pathParameters
+                + ", queryParams=" + queryParams + ", requestHeaders=" + requestHeaders + ", consumedMediaType="
+                + consumedMediaType + ", producedMediaType=" + producedMediaType + '}';
     }
 }
