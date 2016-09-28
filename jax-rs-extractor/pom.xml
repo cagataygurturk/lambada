@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.lambadaframework</groupId>
+        <groupId>com.bluejeans.lambadaframework</groupId>
         <artifactId>lambada</artifactId>
         <version>0.0.6</version>
     </parent>
@@ -22,7 +22,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.lambadaframework</groupId>
+            <groupId>com.bluejeans.lambadaframework</groupId>
             <artifactId>stub-handlers</artifactId>
             <version>${project.parent.version}</version>
             <scope>test</scope>

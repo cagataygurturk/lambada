@@ -1,6 +1,5 @@
 package org.lambadaframework.runtime;
 
-
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -23,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ResourceMethodInvoker {
-
 
     static final Logger logger = Logger.getLogger(ResourceMethodInvoker.class);
 
@@ -55,16 +53,10 @@ public class ResourceMethodInvoker {
         return value;
     }
 
-    public static Object invoke(ResourceMethod resourceMethod,
-                                Request request,
-                                Context lambdaContext)
-            throws
-            InvocationTargetException,
-            IllegalAccessException,
-            InstantiationException {
+    public static Object invoke(ResourceMethod resourceMethod, Request request, Context lambdaContext)
+            throws InvocationTargetException, IllegalAccessException, InstantiationException {
 
         logger.debug("Request object is: " + request);
-
 
         Invocable invocable = resourceMethod.getInvocable();
 
@@ -74,7 +66,6 @@ public class ResourceMethodInvoker {
         Object instance = clazz.newInstance();
 
         List<Object> varargs = new ArrayList<>();
-
 
         /**
          * Get consumes annotation from handler method
@@ -90,23 +81,16 @@ public class ResourceMethodInvoker {
              */
             if (parameter.isAnnotationPresent(PathParam.class)) {
                 PathParam annotation = parameter.getAnnotation(PathParam.class);
-                varargs.add(toObject(
-                        request.getPathParameters().get(annotation.value()), parameterClass
-                        )
-                );
+                varargs.add(toObject(request.getPathParameters().get(annotation.value()), parameterClass));
 
             }
-
 
             /**
              * Query parameter
              */
             if (parameter.isAnnotationPresent(QueryParam.class)) {
                 QueryParam annotation = parameter.getAnnotation(QueryParam.class);
-                varargs.add(toObject(
-                        request.getQueryParams().get(annotation.value()), parameterClass
-                        )
-                );
+                varargs.add(toObject(request.getQueryParams().get(annotation.value()), parameterClass));
             }
 
             /**
@@ -114,28 +98,31 @@ public class ResourceMethodInvoker {
              */
             if (parameter.isAnnotationPresent(HeaderParam.class)) {
                 HeaderParam annotation = parameter.getAnnotation(HeaderParam.class);
-                varargs.add(toObject(
-                        request.getRequestHeaders().get(annotation.value()), parameterClass
-                        )
-                );
+                varargs.add(toObject(request.getRequestHeaders().get(annotation.value()), parameterClass));
             }
 
             if (consumesAnnotation != null && consumesSpecificType(consumesAnnotation, MediaType.APPLICATION_JSON)) {
-                if (parameterClass == String.class) {
-                    //Pass raw request body
-                    varargs.add(request.getRequestBody());
-                } else {
-                    ObjectMapper mapper = new ObjectMapper();
-                    try {
-                        Object deserializedParameter = mapper.readValue(request.getRequestBody(), parameterClass);
-                        varargs.add(deserializedParameter);
-                    } catch (IOException ioException) {
-                        logger.error("Could not serialized " + request.getRequestBody() + " to " + parameterClass + ":", ioException);
-                        varargs.add(null);
+                ObjectMapper mapper = new ObjectMapper();
+                try {
+                    Object body = request.getRequestBody();
+                    Object deserializedParameter = null;
+                    if (body instanceof String) {
+                        if (parameterClass == String.class) {
+                            deserializedParameter = body;
+                        } else
+                            deserializedParameter = mapper.readValue((String) body, parameterClass);
+                    } else if (parameterClass.isInstance(body)) {
+                        deserializedParameter = body;
+                    } else {
+                        deserializedParameter = mapper.readValue(mapper.writeValueAsString(body), parameterClass);
                     }
+                    varargs.add(deserializedParameter);
+                } catch (IOException ioException) {
+                    logger.error("Could not serialized " + request.getRequestBody() + " to " + parameterClass + ":",
+                            ioException);
+                    varargs.add(null);
                 }
             }
-
 
             /**
              * Lambda Context can be automatically injected
