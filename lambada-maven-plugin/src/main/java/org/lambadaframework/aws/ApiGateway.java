@@ -10,6 +10,8 @@ import com.amazonaws.retry.RetryPolicy;
 import com.amazonaws.services.apigateway.AmazonApiGateway;
 import com.amazonaws.services.apigateway.AmazonApiGatewayClient;
 import com.amazonaws.services.apigateway.model.*;
+import com.amazonaws.util.IOUtils;
+
 import org.lambadaframework.deployer.Deployment;
 import org.lambadaframework.jaxrs.model.Resource;
 import org.lambadaframework.jaxrs.model.ResourceMethod;
@@ -19,6 +21,7 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,7 +69,17 @@ public class ApiGateway extends AWSTools {
             "      #end\n" +
             "}";
 
+    
+    private static String URLENCODED_INPUT_TEMPLATE;
 
+    static {
+        try {
+            URLENCODED_INPUT_TEMPLATE = IOUtils.toString(ApiGateway.class.getResourceAsStream("/urlencoded-mapping-template.txt")).replace("<packageName>", PACKAGE_VARIABLE);
+        } catch (IOException e) {
+            URLENCODED_INPUT_TEMPLATE = "";
+        }
+    }
+    
     protected final String OUTPUT_TEMPLATE = "$input.json('$.entity')";
 
     protected final String AUTHORIZATION_TYPE = "NONE";
@@ -515,6 +528,7 @@ public class ApiGateway extends AWSTools {
         String packageName = jerseyMethod.getInvocable().getHandler().getHandlerClass().getPackage().getName();
         Map<String, String> requestTemplates = new LinkedHashMap<>();
         requestTemplates.put(MediaType.APPLICATION_JSON, INPUT_TEMPLATE.replace(PACKAGE_VARIABLE, packageName));
+        requestTemplates.put(MediaType.APPLICATION_FORM_URLENCODED, URLENCODED_INPUT_TEMPLATE.replace(PACKAGE_VARIABLE, packageName));
         return requestTemplates;
     }
 

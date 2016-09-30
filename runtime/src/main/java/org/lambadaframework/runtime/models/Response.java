@@ -1,6 +1,5 @@
 package org.lambadaframework.runtime.models;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -11,7 +10,6 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Response implements Serializable {
-
 
     /**
      * Response headers
@@ -28,7 +26,6 @@ public class Response implements Serializable {
      */
     protected Object entity;
 
-
     public static Response buildFromJAXRSResponse(Object response) {
 
         Response outputResponse = new Response();
@@ -39,11 +36,9 @@ public class Response implements Serializable {
             outputResponse.code = JAXResponse.getStatus();
             outputResponse.headers = new LinkedHashMap<>();
 
-
             for (Map.Entry<String, List<Object>> entry : JAXResponse.getHeaders().entrySet()) {
-                outputResponse.headers.put(entry.getKey(), (String) entry.getValue().get(0));
+                outputResponse.headers.put(entry.getKey(), entry.getValue().get(0).toString());
             }
-
 
         } else {
             outputResponse.entity = response;
@@ -58,8 +53,8 @@ public class Response implements Serializable {
     }
 
     /**
-     * Returns status code as errorMessage
-     * Why errorMessage? Because API Gateway only detects status code within errorMessage
+     * Returns status code as errorMessage Why errorMessage? Because API Gateway
+     * only detects status code within errorMessage
      *
      * @return Status code
      */
