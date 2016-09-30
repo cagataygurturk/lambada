@@ -37,6 +37,12 @@
             <version>1.2.17</version>
         </dependency>
 
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>4.3.3.RELEASE</version>
+		</dependency>
+
         <dependency>
             <groupId>org.lambadaframework</groupId>
             <artifactId>jax-rs-extractor</artifactId>

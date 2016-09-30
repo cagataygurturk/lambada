@@ -17,13 +17,13 @@ import org.lambadaframework.runtime.router.Router;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.stereotype.Service;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
-
 import static org.junit.Assert.*;
 
 @RunWith(PowerMockRunner.class)
@@ -43,6 +43,7 @@ public class HandlerTest {
     }
 
     @Path("/")
+    @Service
     public static class DummyController {
         @GET
         @Path("{id}")

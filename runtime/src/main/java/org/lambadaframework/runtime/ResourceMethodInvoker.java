@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.model.Invocable;
 import org.lambadaframework.jaxrs.model.ResourceMethod;
 import org.lambadaframework.runtime.models.Request;
+import org.lambadaframework.runtime.spring.AppContext;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.HeaderParam;
@@ -24,6 +25,8 @@ import java.util.List;
 public class ResourceMethodInvoker {
 
     static final Logger logger = Logger.getLogger(ResourceMethodInvoker.class);
+
+    private static AppContext appContext = AppContext.getInstance();
 
     private ResourceMethodInvoker() {
     }
@@ -63,7 +66,9 @@ public class ResourceMethodInvoker {
         Method method = invocable.getHandlingMethod();
         Class<?> clazz = invocable.getHandler().getHandlerClass();
 
-        Object instance = clazz.newInstance();
+        // Object instance = clazz.newInstance();
+        appContext.setPackageName(request.getPackage());
+        Object instance = appContext.getBean(clazz);
 
         List<Object> varargs = new ArrayList<>();
 
