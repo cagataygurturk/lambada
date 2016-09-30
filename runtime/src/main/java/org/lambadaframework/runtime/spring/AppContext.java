@@ -10,14 +10,6 @@ public class AppContext {
         return appContext;
     }
 
-    static {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                appContext.destroy();
-            }
-        });
-    }
-
     private AnnotationConfigApplicationContext springContext = new AnnotationConfigApplicationContext();
     private String packageName = null;
 
@@ -33,6 +25,7 @@ public class AppContext {
                     springContext.scan(packageName);
                     springContext.refresh();
                     springContext.start();
+                    springContext.registerShutdownHook();
                 }
             }
         }
