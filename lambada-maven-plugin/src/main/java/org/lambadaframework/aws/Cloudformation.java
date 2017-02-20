@@ -449,9 +449,25 @@ public class Cloudformation extends AWSTools {
         String templateName = deployment.getCloudFormationStackName();
         CreateStackRequest createRequest = new CreateStackRequest();
         createRequest.setStackName(templateName);
-        createRequest.setTemplateBody(templateBody);
+
+        String s3TemplateUrl = deployment.getS3TemplateUrl();
+        if (s3TemplateUrl != null) {
+            log.info("Template url is provided, will use template uploaded at: " + s3TemplateUrl);
+            createRequest.setTemplateURL(s3TemplateUrl);
+        } else {
+            log.info("Template url is not provided will use pre-defined template");
+            createRequest.setTemplateBody(templateBody);
+        }
+
         createRequest.setParameters(deployment.getCloudFormationParameters());
-        createRequest.withCapabilities(Capability.CAPABILITY_IAM);
+
+        String role = deployment.getRoleARN();
+        if (role == null) {
+            createRequest.withCapabilities(Capability.CAPABILITY_IAM);
+        } else {
+            createRequest.setRoleARN(role);
+        }
+
         getCloudFormationClient().createStack(createRequest);
         log.info("Stack creation completed, the stack " + templateName + " completed with " + waitForCompletion());
     }
@@ -461,8 +477,25 @@ public class Cloudformation extends AWSTools {
         String templateName = deployment.getCloudFormationStackName();
         UpdateStackRequest updateStackRequest = new UpdateStackRequest();
         updateStackRequest.setStackName(templateName);
-        updateStackRequest.setTemplateBody(templateBody);
+
+        String s3TemplateUrl = deployment.getS3TemplateUrl();
+        if (s3TemplateUrl != null) {
+            log.info("Template url is provided, will use template uploaded at: " + s3TemplateUrl);
+            updateStackRequest.setTemplateURL(s3TemplateUrl);
+        } else {
+            log.info("Template url is not provided will use pre-defined template");
+            updateStackRequest.setTemplateBody(templateBody);
+        }
+
         updateStackRequest.setParameters(deployment.getCloudFormationParameters());
+
+        String role = deployment.getRoleARN();
+        if (role == null) {
+            updateStackRequest.withCapabilities(Capability.CAPABILITY_IAM);
+        } else {
+            updateStackRequest.setRoleARN(role);
+        }
+
         updateStackRequest.withCapabilities(Capability.CAPABILITY_IAM);
         getCloudFormationClient().updateStack(updateStackRequest);
         log.info("Stack update completed, the stack " + templateName + " completed with " + waitForCompletion());

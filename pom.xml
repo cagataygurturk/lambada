@@ -3,9 +3,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.lambadaframework</groupId>
+    <groupId>se.simonsoft.lambadaframework</groupId>
     <artifactId>lambada</artifactId>
-    <version>0.0.6</version>
+    <version>0.8.5</version>
     <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -36,7 +36,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <aws-sdk.version>1.11.13</aws-sdk.version>
+        <aws-sdk.version>1.11.78</aws-sdk.version>
         <junit.version>4.12</junit.version>
         <logback.version>1.1.7</logback.version>
         <mockito.version>1.10.19</mockito.version>

@@ -69,7 +69,7 @@ public class LambadaDeployer extends AbstractMojoPlugin {
             /**
              * Set up VPC of Lambda, create new version
              */
-            getLog().info("LAMBDA");
+            /*getLog().info("LAMBDA");
             LambdaFunction lambdaFunction = new LambdaFunction(cloudFormationOutput.getLambdaFunctionArn(), deployment);
             lambdaFunction.setLog(getLog());
             String functionArn = lambdaFunction.deployLatestVersion();
@@ -79,7 +79,7 @@ public class LambadaDeployer extends AbstractMojoPlugin {
             ApiGateway apiGateway = new ApiGateway(deployment, functionArn, cloudFormationOutput.getLambdaExecutionRole());
             apiGateway.setLog(getLog());
             apiGateway.deployEndpoints();
-            getLog().info(LOG_SEPERATOR);
+            getLog().info(LOG_SEPERATOR);*/
 
 
         } catch (Exception e) {

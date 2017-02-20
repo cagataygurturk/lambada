@@ -23,7 +23,7 @@ public class ErrorHandler {
         } catch (InvocationTargetException ex) {
             return new BadRequestResponse();
         } catch (NotFoundException ex) {
-            return new NotFoundErrorResponse("Page not found");
+            return new NotFoundErrorResponse();
         } catch (Exception ex) {
             return new ErrorResponse();
         } finally {
