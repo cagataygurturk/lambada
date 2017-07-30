@@ -156,6 +156,7 @@ You might want to look at other projects about serverless architecture:
 
  - [Serverless](https://github.com/serverless/serverless): Reputable framework to deploy serverless projects in Node.JS
  - [ingenieux/lambada](https://github.com/ingenieux/lambada): Another JAVA framework with a similar name with Lambada Framework. It uses a slightly different approach than Lambada Framework to develop serverless projects.
+ - [lambda-forest](https://github.com/tdsis/lambda-forest): A microframework that provides a set of tools to make it easier to develop rest api's using Lambda Functions and API Gateway.
  - [Zappa](https://github.com/Miserlou/Zappa): Develop and deploy serverless applications with Python.
 
 ## Links:
