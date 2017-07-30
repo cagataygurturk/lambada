@@ -14,6 +14,9 @@ public class ErrorHandler {
 
     static final Logger logger = Logger.getLogger(ErrorHandler.class);
 
+    private ErrorHandler() {
+    }
+
     public static ErrorResponse getErrorResponse(Exception e) {
         try {
             throw e;

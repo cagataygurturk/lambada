@@ -38,6 +38,9 @@ public abstract class AbstractMojoPlugin extends AbstractMojo {
     @Parameter(defaultValue = "128")
     public String lambdaMemorySize = "128";
 
+    @Parameter(defaultValue = "org.lambadaframework.runtime.Handler")
+    public String lambdaHandler = "org.lambadaframework.runtime.Handler";
+
     /**
      * Lambda execution role policy ARN
      * <p>
@@ -77,6 +80,7 @@ public abstract class AbstractMojoPlugin extends AbstractMojo {
         Properties cloudFormationParameters = new Properties();
         cloudFormationParameters.setProperty(Deployment.LAMBDA_MAXIMUM_EXECUTION_TIME_KEY, lambdaMaximumExecutionTime);
         cloudFormationParameters.setProperty(Deployment.LAMBDA_MEMORY_SIZE_KEY, lambdaMemorySize);
+        cloudFormationParameters.setProperty(Deployment.LAMBDA_HANDLER_KEY, lambdaHandler);
 
         if (lambdaExecutionRolePolicies != null) {
             cloudFormationParameters.setProperty(Deployment.LAMBDA_EXECUTION_ROLE_POLICY_KEY, String.join(",", lambdaExecutionRolePolicies));

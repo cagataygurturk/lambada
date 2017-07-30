@@ -117,7 +117,7 @@ public final class SimpleStorageServiceWagon extends AbstractWagon {
 
     @Override
     protected List<String> listDirectory(String directory) throws ResourceDoesNotExistException {
-        List<String> directoryContents = new ArrayList<String>();
+        List<String> directoryContents = new ArrayList<>();
 
         try {
             String prefix = getKey(directory);
@@ -201,7 +201,7 @@ public final class SimpleStorageServiceWagon extends AbstractWagon {
     }
 
     private List<String> getResourceNames(ObjectListing objectListing, Pattern pattern) {
-        List<String> resourceNames = new ArrayList<String>();
+        List<String> resourceNames = new ArrayList<>();
 
         for (String commonPrefix : objectListing.getCommonPrefixes()) {
             resourceNames.add(getResourceName(commonPrefix, pattern));

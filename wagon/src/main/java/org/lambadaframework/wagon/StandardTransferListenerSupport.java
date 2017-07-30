@@ -28,7 +28,7 @@ final class StandardTransferListenerSupport implements TransferListenerSupport {
 
     private final Wagon wagon;
 
-    private final Set<TransferListener> transferListeners = new HashSet<TransferListener>();
+    private final Set<TransferListener> transferListeners = new HashSet<>();
 
     StandardTransferListenerSupport(Wagon wagon) {
         this.wagon = wagon;

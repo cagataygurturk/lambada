@@ -77,7 +77,10 @@ public class JAXRSParser {
             }
 
         }
-
+        
+        jarFile.close();
+        cl.close();
+        
         return classes;
     }
 

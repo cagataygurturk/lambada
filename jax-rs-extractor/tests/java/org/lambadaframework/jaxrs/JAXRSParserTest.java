@@ -1,30 +1,35 @@
 package org.lambadaframework.jaxrs;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.List;
 
 import org.junit.Test;
 import org.lambadaframework.jaxrs.model.Resource;
 import org.lambadaframework.stubs.StubHandler;
 
-import java.util.List;
-
-import static org.junit.Assert.*;
-
-
 public class JAXRSParserTest {
 
     /**
-     * To run this test, lambada-stub-handlers module should be compiled
-     * and packaged in lambada-stub-handlers/target folder
-     *
-     * @throws Exception
+     * To run this test, lambada-stub-handlers module should be compiled and packaged in lambada-stub-handlers/target folder
      */
     @Test
     public void testScanJar() throws Exception {
-        JAXRSParser parser = new JAXRSParser().withJarFile(
-                "../stub-handlers/target/stub-handlers-0.0.5.jar",
-                "org.lambadaframework");
+
+        // Finds the filename of the stub-handler-jar without regards to version numbering.
+        String stubHandlerFileName = new File("../stub-handlers/target").listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String filename) {
+                return filename.startsWith("stub-handlers-");
+            }
+        })[0].getAbsolutePath();
+        JAXRSParser parser = new JAXRSParser().withJarFile(stubHandlerFileName, "org.lambadaframework");
         List<Resource> resourceList = parser.scan();
-        assertTrue(resourceList.size() > 0);
+        assertFalse(resourceList.isEmpty());
     }
 
     @Test

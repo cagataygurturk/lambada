@@ -78,7 +78,7 @@ The configuration values should be present under maven plugin's configuration.
         <plugin>
             <groupId>org.lambadaframework</groupId>
             <artifactId>maven-plugin</artifactId>
-            <version>0.0.5</version>
+            <version>0.0.6</version>
             <configuration>
 	            ...
 				<!-- Configuration options -->
@@ -99,20 +99,21 @@ The configuration values should be present under maven plugin's configuration.
 
 All the possible parameters are as follows:
 
-| Parameter                     | Default value | Required? |
-|-------------------------------|---------------|-----------|
-| packageName                   | N/A           | Yes       |
-| regionToDeploy                | N/A           | Yes       |
-| stageToDeploy                 | N/A           | Yes       |
-| lambdaMaximumExecutionTime    | 3             | No        |
-| lambdaMemorySize              | 128           | No        |
-| lambdaExecutionRolePolicies   | N/A           | No        |
-| lambdaSubnetIds               | N/A           | No        |
-| lambdaSecurityGroups          | N/A           | No        |
+| Parameter                     | Default value                        | Required? |
+|-------------------------------|--------------------------------------|-----------|
+| packageName                   | N/A                                  | Yes       |
+| regionToDeploy                | N/A                                  | Yes       |
+| stageToDeploy                 | N/A                                  | Yes       |
+| lambdaMaximumExecutionTime    | 3                                    | No        |
+| lambdaMemorySize              | 128                                  | No        |
+| lambdaExecutionRolePolicies   | N/A                                  | No        |
+| lambdaSubnetIds               | N/A                                  | No        |
+| lambdaSecurityGroups          | N/A                                  | No        |
+| lambdaHandler                 | org.lambadaframework.runtime.Handler | No        |
 
 Below you can find detailed information about the configuration parameters:
 
-- **packageName:** The package name to scan for JAX-RS annotations.
+- **packageName:** The package name of the parent package in which the JAX-RS annotations reside.
 
 - **regionToDeploy:** AWS Region to deploy your API. It should be a region where Lambda and API Gateway are supported.
 
@@ -145,6 +146,18 @@ Below you can find detailed information about the configuration parameters:
         <params>sg-6c251d42</params>
     </lambdaSecurityGroups>
     ```
+- **lambdaHandler:** The entrypoint for the lambda. You will more than likely want to
+leave this as the default value so that integration with API Gateway is automatic. Only
+override this if you are using the lambada-maven-plugin to deploy your own Lambda functions.
+
+## Other projects
+
+You might want to look at other projects about serverless architecture:
+
+ - [Serverless](https://github.com/serverless/serverless): Reputable framework to deploy serverless projects in Node.JS
+ - [ingenieux/lambada](https://github.com/ingenieux/lambada): Another JAVA framework with a similar name with Lambada Framework. It uses a slightly different approach than Lambada Framework to develop serverless projects.
+ - [lambda-forest](https://github.com/tdsis/lambda-forest): A microframework that provides a set of tools to make it easier to develop rest api's using Lambda Functions and API Gateway.
+ - [Zappa](https://github.com/Miserlou/Zappa): Develop and deploy serverless applications with Python.
 
 ## Links:
 
@@ -155,4 +168,4 @@ Below you can find detailed information about the configuration parameters:
 
 ## Contributing:
 
-Feel free to send a PR for any contribution. We'll be publishing a Roadmap in the future.
+Feel free to send a PR to `develop` branch for any contribution. We'll be publishing a Roadmap in the future.

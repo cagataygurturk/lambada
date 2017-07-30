@@ -2,6 +2,8 @@ package org.lambadaframework.deployer;
 
 
 import com.amazonaws.services.cloudformation.model.Parameter;
+
+import org.apache.maven.artifact.versioning.OverConstrainedVersionException;
 import org.lambadaframework.aws.S3;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -50,8 +52,11 @@ public class Deployment {
 
     public static final String S3_DEPLOYMENT_BUCKET_KEY = "DeploymentS3Bucket";
     public static final String S3_DEPLOYMENT_KEY_KEY = "DeploymentS3Key";
+    public static final String LAMBDA_HANDLER_KEY = "LambdaHandler";
+    public static final String LAMBDA_HANDLER_DEFAULT_VALUE = "org.lambadaframework.runtime.Handler";
 
     public static final String LAMBDA_DESCRIPTION_KEY = "LambdaDescription";
+
 
     protected Log log;
 
@@ -89,7 +94,6 @@ public class Deployment {
 
         properties.setProperty(S3_DEPLOYMENT_BUCKET_KEY, getBucketName());
         properties.setProperty(S3_DEPLOYMENT_KEY_KEY, getJarFileLocationOnS3(getVersion()));
-
         properties.setProperty(LAMBDA_DESCRIPTION_KEY, getLambdaDescription());
 
         if (properties.getProperty(LAMBDA_MAXIMUM_EXECUTION_TIME_KEY) == null) {
@@ -100,10 +104,13 @@ public class Deployment {
             properties.setProperty(LAMBDA_MEMORY_SIZE_KEY, Integer.toString(LAMBDA_MEMORY_SIZE_DEFAULT_VALUE));
         }
 
+        if (properties.getProperty(LAMBDA_HANDLER_KEY) == null) {
+            properties.setProperty(LAMBDA_HANDLER_KEY, LAMBDA_HANDLER_DEFAULT_VALUE);
+        }
     }
 
     public String getVersion() {
-        return this.project.getVersion();
+        return this.project.getArtifact().getVersion();
     }
 
     public String getStage() {
@@ -125,7 +132,7 @@ public class Deployment {
     }
 
     public Collection<Parameter> getCloudFormationParameters() {
-        Collection<Parameter> parameters = new ArrayList<Parameter>();
+        Collection<Parameter> parameters = new ArrayList<>();
         for (Map.Entry<Object, Object> e : properties.entrySet()) {
             parameters.add(new Parameter().withParameterKey((String) e.getKey()).withParameterValue((String) e.getValue()));
         }
@@ -160,10 +167,10 @@ public class Deployment {
 
         String bucketKey = this.project.getGroupId().replace(".", seperator) + seperator
                 + this.project.getArtifactId() + seperator
-                + version + seperator
+                + this.project.getArtifact().getBaseVersion() + seperator
                 + this.project.getArtifactId() + "-" + version + ".jar";
 
-        if (version.contains("SNAPSHOT")) {
+        if (this.project.getArtifact().getBaseVersion().contains("SNAPSHOT")) {
             bucketKey = "snapshots/" + bucketKey;
         } else {
             bucketKey = "releases/" + bucketKey;

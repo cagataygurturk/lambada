@@ -27,7 +27,7 @@ final class StandardSessionListenerSupport implements SessionListenerSupport {
 
     private final Wagon wagon;
 
-    private final Set<SessionListener> sessionListeners = new HashSet<SessionListener>();
+    private final Set<SessionListener> sessionListeners = new HashSet<>();
 
     StandardSessionListenerSupport(Wagon wagon) {
         this.wagon = wagon;
