@@ -1,6 +1,7 @@
 package org.lambadaframework.jaxrs;
 
 
+import org.apache.log4j.Logger;
 import org.lambadaframework.jaxrs.model.Resource;
 
 import java.io.File;
@@ -21,6 +22,7 @@ public class JAXRSParser {
     private String packageName;
     private String jarUrl;
     private Class clazz;
+    static final Logger logger = Logger.getLogger(JAXRSParser.class);
 
 
     public JAXRSParser() {
@@ -100,6 +102,8 @@ public class JAXRSParser {
     private List<Class<? extends Object>> getClassesInPackage(String packageName, Class clazz) {
         List<Class<? extends Object>> classes = new LinkedList<>();
 
+        logger.debug("GetClassesInPackage init: " + packageName);
+
         try {
             final String classExtension = ".class";
             final String blank = "";
@@ -123,7 +127,7 @@ public class JAXRSParser {
                         throws IOException {
 
                     String fileName = file.toString();
-
+                    logger.debug("File name: " + fileName);
                     if (fileName.endsWith(classExtension)) {
                         String className = fileName.replace(jarPath, blank).replace(File.separator, classSeperator);
                         className = className.substring(0, className.length() - classExtension.length());
@@ -146,6 +150,8 @@ public class JAXRSParser {
         } catch (URISyntaxException | IOException e) {
             return classes;
         }
+
+        logger.debug("GetClassesInPackage done: " + packageName);
 
         return classes;
     }
@@ -185,6 +191,7 @@ public class JAXRSParser {
 
 
     private List<Resource> getResourcesFromClassRecursive(Class clazz) {
+        logger.debug("getResourcesFromClassRecursive init");
         List<Resource> foundResources = new LinkedList<>();
 
         try {
@@ -196,10 +203,14 @@ public class JAXRSParser {
 
             Resource resource = new Resource(jerseyResource);
             foundResources.add(resource);
+            logger.debug("getResourcesFromClassRecursive done");
             return getResourcesFromClassRecursive(resource, foundResources);
         } catch (Exception e) {
+            logger.debug("getResourcesFromClassRecursive done catch exception: " + e.getMessage() + "    " + e);
             return foundResources;
+
         }
+
     }
 
     private List<Resource> getResourcesFromClassRecursive(Resource resource, List<Resource> foundResources) {

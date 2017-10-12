@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import org.lambadaframework.jaxrs.JAXRSParser;
 import org.lambadaframework.jaxrs.model.Resource;
 import org.lambadaframework.jaxrs.model.ResourceMethod;
-import org.lambadaframework.runtime.models.Request;
+import org.lambadaframework.runtime.models.RequestInterface;
 import org.lambadaframework.runtime.router.types.*;
 
 import javax.ws.rs.NotFoundException;
@@ -95,7 +95,7 @@ public final class Router {
     }
 
 
-    private boolean isResourceMapMatches(Request request, ResourceMethod resourceMethod) {
+    private boolean isResourceMapMatches(RequestInterface request, ResourceMethod resourceMethod) {
         for (RouterType router : routerTypes) {
             if (!router.isMatching(request, resourceMethod)) {
                 return false;
@@ -105,12 +105,12 @@ public final class Router {
     }
 
 
-    private String calculateCacheKeyForRequest(Request request) {
+    private String calculateCacheKeyForRequest(RequestInterface request) {
         return request.getPathTemplate() + "-" +
                 request.getMethod();
     }
 
-    public ResourceMethod route(Request request)
+    public ResourceMethod route(RequestInterface request)
             throws NotFoundException {
 
         if (request.getPackage() == null) {

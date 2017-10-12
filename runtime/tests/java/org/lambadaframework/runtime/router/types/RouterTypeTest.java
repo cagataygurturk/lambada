@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.lambadaframework.jaxrs.model.Resource;
 import org.lambadaframework.jaxrs.model.ResourceMethod;
 import org.lambadaframework.runtime.models.Request;
+import org.lambadaframework.runtime.models.RequestInterface;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MediaType;
@@ -15,7 +16,7 @@ import static org.junit.Assert.*;
 public class RouterTypeTest {
 
 
-    private Request getRequest() {
+    private RequestInterface getRequest() {
         Request request = new Request();
         request.setPackage("com.cagataygurturk.testhandlers");
         request.setMethod(Request.RequestMethod.GET);

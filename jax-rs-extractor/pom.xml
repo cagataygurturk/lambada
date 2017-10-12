@@ -2,9 +2,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.lambadaframework</groupId>
+        <groupId>se.simonsoft.lambadaframework</groupId>
         <artifactId>lambada</artifactId>
-        <version>0.0.6</version>
+        <version>0.8.8</version>
     </parent>
     <artifactId>jax-rs-extractor</artifactId>
     <packaging>jar</packaging>
@@ -22,7 +22,13 @@
         </dependency>
 
         <dependency>
-            <groupId>org.lambadaframework</groupId>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+
+        <dependency>
+            <groupId>se.simonsoft.lambadaframework</groupId>
             <artifactId>stub-handlers</artifactId>
             <version>${project.parent.version}</version>
             <scope>test</scope>

@@ -3,25 +3,16 @@ package org.lambadaframework.runtime.models.error;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.lambadaframework.runtime.models.Response;
+import org.lambadaframework.runtime.models.ResponseProxy;
 
-public class ErrorResponse extends Response {
+public class ErrorResponse extends ResponseProxy {
 
-    protected String errorMessage;
 
     public ErrorResponse() {
-        this.errorMessage = "Internal Server Error";
-        this.code = 500;
+        super(500, "Internal Server Error");
     }
 
-    public ErrorResponse(String errorMessage) {
-        this();
-        this.errorMessage = errorMessage;
+    public ErrorResponse(int code, Object entity) {
+        super(code, entity);
     }
-
-    @JsonProperty("errorMessage")
-    @Override
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
 }

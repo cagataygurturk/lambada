@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.model.Invocable;
 import org.lambadaframework.jaxrs.model.ResourceMethod;
-import org.lambadaframework.runtime.models.Request;
+import org.lambadaframework.runtime.models.RequestInterface;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.HeaderParam;
@@ -56,7 +56,7 @@ public class ResourceMethodInvoker {
     }
 
     public static Object invoke(ResourceMethod resourceMethod,
-                                Request request,
+                                RequestInterface request,
                                 Context lambdaContext)
             throws
             InvocationTargetException,
@@ -144,7 +144,7 @@ public class ResourceMethodInvoker {
                 varargs.add(lambdaContext);
             }
         }
-
+        //Caller must catch Invocation target exception and throw the underlying exception.
         return method.invoke(instance, varargs.toArray());
     }
 

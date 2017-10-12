@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.lambadaframework.runtime.models.error.BadRequestResponse;
 import org.lambadaframework.runtime.models.error.ErrorResponse;
 import org.lambadaframework.runtime.models.error.NotFoundErrorResponse;
+import org.lambadaframework.runtime.models.error.RuntimeErrorResponse;
 
 
 import javax.ws.rs.NotFoundException;
@@ -23,7 +24,9 @@ public class ErrorHandler {
         } catch (InvocationTargetException ex) {
             return new BadRequestResponse();
         } catch (NotFoundException ex) {
-            return new NotFoundErrorResponse("Page not found");
+            return new NotFoundErrorResponse();
+        } catch (RuntimeException ex) {
+            return new RuntimeErrorResponse(ex.getMessage());
         } catch (Exception ex) {
             return new ErrorResponse();
         } finally {

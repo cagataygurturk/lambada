@@ -1,19 +1,14 @@
-package org.lambadaframework.runtime.models;
+package org.lambadaframework.runtime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.lambadaframework.runtime.models.RequestInterface;
 
 import javax.ws.rs.core.MediaType;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Request class is a POJO.
- * <p>
- * Event json that lambda function got is automatically serialized to this POJO. For more details see Lambda documentation:
- * <p>
- * http://docs.aws.amazon.com/lambda/latest/dg/java-handler-io-type-pojo.html
- */
-public class Request implements Serializable, RequestInterface {
+public class RequestProxy implements Serializable, RequestInterface {
 
     /**
      * Package name
@@ -38,17 +33,17 @@ public class Request implements Serializable, RequestInterface {
     /**
      * Query parameters
      */
-    protected Map<String, String> pathParameters;
+    protected Map<String, String> pathParameters = new HashMap<>();
 
     /**
      * Query parameters
      */
-    protected Map<String, String> queryParams;
+    protected Map<String, String> queryParams = new HashMap<>();
 
     /**
      * Request headers
      */
-    protected Map<String, String> requestHeaders;
+    protected Map<String, String> requestHeaders = new HashMap<>();
 
     /**
      * Consumed media type
@@ -67,8 +62,8 @@ public class Request implements Serializable, RequestInterface {
     }
 
 
-    @JsonProperty("method")
-    public Request setMethod(RequestMethod method) {
+    @JsonProperty("httpMethod")
+    public RequestProxy setMethod(RequestMethod method) {
         this.method = method;
         return this;
     }
@@ -80,22 +75,19 @@ public class Request implements Serializable, RequestInterface {
 
     @Override
     public String getPackage() {
-        return packageName;
-    }
-
-    @JsonProperty("package")
-    public Request setPackage(String packageName) {
-        this.packageName = packageName;
-        return this;
+        this.packageName =  System.getenv("PackageNameRest");
+        return this.packageName;
     }
 
     @Override
     public String getPathTemplate() {
         return pathTemplate;
     }
-
-    @JsonProperty("pathTemplate")
-    public Request setPathtemplate(String pathTemplate) {
+    /*
+    There is no path template when using proxy. This is the actual request path.
+     */
+    @JsonProperty("path")
+    public RequestProxy setPathtemplate(String pathTemplate) {
         this.pathTemplate = pathTemplate;
         return this;
     }
@@ -105,8 +97,8 @@ public class Request implements Serializable, RequestInterface {
         return requestBody;
     }
 
-    @JsonProperty("requestBody")
-    public Request setRequestbody(String requestBody) {
+    @JsonProperty("body")
+    public RequestProxy setRequestbody(String requestBody) {
         this.requestBody = requestBody;
         return this;
     }
@@ -116,30 +108,30 @@ public class Request implements Serializable, RequestInterface {
         return consumedMediaType;
     }
 
-    @JsonProperty("consumes")
-    public Request setConsumes(String consumedMediaType) {
+    /*@JsonProperty("consumes")
+    public RequestProxy setConsumes(String consumedMediaType) {
         this.consumedMediaType = getMediaTypeFromString(consumedMediaType);
         return this;
-    }
+    }*/
 
     @Override
     public MediaType getProducedMediaType() {
         return producedMediaType;
     }
 
-    @JsonProperty("produces")
-    public Request setProduces(String producedMediaType) {
+    /*@JsonProperty("produces")
+    public RequestProxy setProduces(String producedMediaType) {
         this.producedMediaType = getMediaTypeFromString(producedMediaType);
         return this;
-    }
+    }*/
 
     @Override
     public Map<String, String> getPathParameters() {
         return pathParameters;
     }
 
-    @JsonProperty("path")
-    public Request setPath(Map<String, String> pathParameters) {
+    @JsonProperty("pathParameters")
+    public RequestProxy setPath(Map<String, String> pathParameters) {
         this.pathParameters = pathParameters;
         return this;
     }
@@ -149,9 +141,12 @@ public class Request implements Serializable, RequestInterface {
         return queryParams;
     }
 
-    @JsonProperty("querystring")
-    public Request setQuerystring(Map<String, String> queryParams) {
+    @JsonProperty("queryStringParameters")
+    public RequestProxy setQuerystring(Map<String, String> queryParams) {
         this.queryParams = queryParams;
+        if (this.queryParams == null) {
+            this.queryParams = new HashMap<>();
+        }
         return this;
     }
 
@@ -160,8 +155,8 @@ public class Request implements Serializable, RequestInterface {
         return requestHeaders;
     }
 
-    @JsonProperty("header")
-    public Request setHeader(Map<String, String> requestHeaders) {
+    @JsonProperty("headers")
+    public RequestProxy setHeader(Map<String, String> requestHeaders) {
         this.requestHeaders = requestHeaders;
         return this;
     }

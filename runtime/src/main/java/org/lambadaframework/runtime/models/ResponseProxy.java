@@ -3,22 +3,25 @@ package org.lambadaframework.runtime.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Response implements Serializable {
+public class ResponseProxy implements Serializable {
 
-    private static final Logger logger = Logger.getLogger(Response.class);
+    private static final Logger logger = Logger.getLogger(ResponseProxy.class);
 
     /**
      * Response headers
      */
-    protected Map<String, String> headers;
+    protected Map<String, String> headers = new LinkedHashMap<>();
 
     /**
      * Status code
@@ -30,25 +33,29 @@ public class Response implements Serializable {
      */
     protected Object entity;
 
+    public ResponseProxy() {
+    }
 
-    public static Response buildFromJAXRSResponse(Object response) throws RuntimeException{
+    public ResponseProxy(int code, Object entity) {
+        this.code = code;
+        this.entity = entity;
+        setCors();
+    }
 
-        Response outputResponse = new Response();
+
+    public static ResponseProxy buildFromJAXRSResponse(Object response) throws RuntimeException, IOException {
+
+        ResponseProxy outputResponse = new ResponseProxy();
 
         if (response instanceof javax.ws.rs.core.Response) {
 
             javax.ws.rs.core.Response JAXResponse = ((javax.ws.rs.core.Response) response);
 
             int status = JAXResponse.getStatus();
-            //AWS needs to receive a Exception to return different response code then 200. It will parse the error, the lambda error RegEx will get a match on the status code.
-            //Throws exception for not 2xx
-            if (status < 200 || status > 299) {
-                throw new RuntimeException(Integer.toString(status).concat(JAXResponse.getEntity().toString()));
-            }
 
             outputResponse.entity = JAXResponse.getEntity();
             outputResponse.code = status;
-            outputResponse.headers = new LinkedHashMap<>();
+            outputResponse.setCors();
 
             for (Map.Entry<String, List<Object>> entry : JAXResponse.getHeaders().entrySet()) {
                 outputResponse.headers.put(entry.getKey(), (String) entry.getValue().get(0));
@@ -62,24 +69,32 @@ public class Response implements Serializable {
         return outputResponse;
     }
 
-    @JsonProperty("entity")
-    public Object getEntity() {
-        return entity;
+    public void setCors() {
+        headers.put("Access-Control-Allow-Origin", "*");
     }
 
-    /**
-     * Returns status code as errorMessage
-     * Why errorMessage? Because API Gateway only detects status code within errorMessage
-     *
-     * @return Status code
-     */
-    @JsonProperty("errorMessage")
-    public String getErrorMessage() {
-        return String.valueOf(code);
+    @JsonProperty("body")
+    public Object getEntity() {
+        return entity;
     }
 
     @JsonProperty("headers")
     public Map<String, String> getHeaders() {
         return headers;
     }
+
+    @JsonProperty("statusCode")
+    public int getStatusCode() {
+        return this.code;
+    }
+
+    public void write(Writer writer) {
+        try {
+            new ObjectMapper().writeValue(writer, this);
+            writer.close();
+        } catch (IOException e) {
+            logger.error(e.getStackTrace());
+        }
+    }
+
 }
