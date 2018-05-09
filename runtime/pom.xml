@@ -1,5 +1,8 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
+    <properties>
+        <jackson.version>2.7.5</jackson.version>
+    </properties>
     <parent>
         <groupId>org.lambadaframework</groupId>
         <artifactId>lambada</artifactId>
@@ -28,7 +31,14 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>2.7.5</version>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -44,20 +54,10 @@
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.7.5</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.lambadaframework</groupId>
             <artifactId>stub-handlers</artifactId>
             <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <build>
-        <testSourceDirectory>${project.basedir}/tests/java</testSourceDirectory>
-    </build>
 </project>

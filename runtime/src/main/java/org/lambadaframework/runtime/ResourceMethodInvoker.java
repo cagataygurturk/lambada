@@ -3,24 +3,24 @@ package org.lambadaframework.runtime;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.server.model.Invocable;
 import org.lambadaframework.jaxrs.model.ResourceMethod;
 import org.lambadaframework.runtime.models.Request;
+import org.lambadaframework.runtime.exceptions.InvalidParameterException;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
+import java.util.*;
 
 public class ResourceMethodInvoker {
 
@@ -61,7 +61,9 @@ public class ResourceMethodInvoker {
             throws
             InvocationTargetException,
             IllegalAccessException,
-            InstantiationException {
+            InstantiationException,
+            InvalidParameterException,
+            IOException {
 
         logger.debug("Request object is: " + request);
 
@@ -75,77 +77,100 @@ public class ResourceMethodInvoker {
 
         List<Object> varargs = new ArrayList<>();
 
-
         /**
          * Get consumes annotation from handler method
          */
         Consumes consumesAnnotation = method.getAnnotation(Consumes.class);
+        ObjectMapper objectMapper = new ObjectMapper();
 
         for (Parameter parameter : method.getParameters()) {
 
             Class<?> parameterClass = parameter.getType();
+
+            logger.info("Parameter: "+parameter.getName()+" type: "+parameterClass.getName()+".");
+
+            Object paramV = null;
+
+            if (parameter.isAnnotationPresent(DefaultValue.class)) {
+                DefaultValue annotation = parameter.getAnnotation(DefaultValue.class);
+                paramV = annotation.value();
+                logger.info("Found default value for parameter.");
+            }
 
             /**
              * Path parameter
              */
             if (parameter.isAnnotationPresent(PathParam.class)) {
                 PathParam annotation = parameter.getAnnotation(PathParam.class);
-                varargs.add(toObject(
-                        request.getPathParameters().get(annotation.value()), parameterClass
-                        )
-                );
-
-            }
-
-
-            /**
-             * Query parameter
-             */
-            if (parameter.isAnnotationPresent(QueryParam.class)) {
+                paramV = toObject(request.getPathParameters().get(annotation.value()), parameterClass);
+                logger.info("Path param found.");
+            } else if (parameter.isAnnotationPresent(QueryParam.class)) {
                 QueryParam annotation = parameter.getAnnotation(QueryParam.class);
-                varargs.add(toObject(
-                        request.getQueryParams().get(annotation.value()), parameterClass
-                        )
-                );
-            }
-
-            /**
-             * Query parameter
-             */
-            if (parameter.isAnnotationPresent(HeaderParam.class)) {
+                paramV = toObject(request.getQueryParams().get(annotation.value()), parameterClass);
+                logger.info("Query param found.");
+            } else if (parameter.isAnnotationPresent(HeaderParam.class)) {
                 HeaderParam annotation = parameter.getAnnotation(HeaderParam.class);
-                varargs.add(toObject(
-                        request.getRequestHeaders().get(annotation.value()), parameterClass
-                        )
-                );
+                paramV = toObject(request.getRequestHeaders().get(annotation.value()), parameterClass);
+                logger.info("Header param found.");
+            } else if (parameter.isAnnotationPresent(FormParam.class)) {
+                logger.info("Got Form Parameter");
+                FormParam annotation = parameter.getAnnotation(FormParam.class);
+                paramV = getFormValue(request, parameterClass, paramV, annotation.value());
+            } else if (parameter.getType() == Context.class) { /* Lambda Context can be automatically injected */
+                paramV = (lambdaContext);
+                logger.info("Context insert.");
+            } else if (consumesAnnotation != null) {
+                logger.info("Using Consumer type to populate parameter.");
+                //Pass raw request body
+                paramV = consumeAnnotation(request, consumesAnnotation, objectMapper, parameter, parameterClass, paramV);
+            } else {
+                logger.info("Got fallback for Parameter: " + parameter.getName()); // TODO not working.
+                logger.info("Body is param class: " + parameterClass.getName());
+                throw new InvalidParameterException("Parameter mismatch");
             }
-
-            if (consumesAnnotation != null && consumesSpecificType(consumesAnnotation, MediaType.APPLICATION_JSON)) {
-                if (parameterClass == String.class) {
-                    //Pass raw request body
-                    varargs.add(request.getRequestBody());
-                } else {
-                    ObjectMapper mapper = new ObjectMapper();
-                    try {
-                        Object deserializedParameter = mapper.readValue(request.getRequestBody(), parameterClass);
-                        varargs.add(deserializedParameter);
-                    } catch (IOException ioException) {
-                        logger.error("Could not serialized " + request.getRequestBody() + " to " + parameterClass + ":", ioException);
-                        varargs.add(null);
-                    }
-                }
-            }
-
-
-            /**
-             * Lambda Context can be automatically injected
-             */
-            if (parameter.getType() == Context.class) {
-                varargs.add(lambdaContext);
-            }
+            varargs.add(paramV);
         }
 
         return method.invoke(instance, varargs.toArray());
+    }
+
+    private static Object consumeAnnotation(Request request, Consumes consumesAnnotation, ObjectMapper objectMapper, Parameter parameter, Class<?> parameterClass, Object paramV) throws IOException {
+        if (consumesSpecificType(consumesAnnotation, MediaType.APPLICATION_JSON)) {
+            logger.info("Consume json: " + request.getRequestBody());
+            paramV = objectMapper.readValue(request.getRequestBody(), parameterClass);
+        } else if (consumesSpecificType(consumesAnnotation, MediaType.TEXT_PLAIN)) {
+            logger.info("Consume plain text");
+            paramV = request.getRequestBody();
+        } else if (consumesSpecificType(consumesAnnotation, MediaType.APPLICATION_FORM_URLENCODED)) {
+            String name = parameter.getName(); // TODO fixme this doesn't work
+            logger.info("Consume form url encoded data with parameter name: " + name);
+            paramV = getFormValue(request, parameterClass, paramV, name);
+        }
+        return paramV;
+    }
+
+    private static Object getFormValue(Request request, Class<?> parameterClass, Object paramV, String name) throws IOException {
+        logger.info("Form value decode from url encoded from data: " + (String) request.getRequestBody());
+        logger.info("looking for key: " + name);
+        // Seems due to the api gateway change it's coming in as JSON regardless.
+        ObjectMapper objectMapper = new ObjectMapper();
+        String requestBodyDejsoned = objectMapper.readValue(request.getRequestBody(), String.class);
+        List<NameValuePair> formParams = URLEncodedUtils.parse(requestBodyDejsoned, Charset.forName("UTF-8"));
+        List<String> strings = new ArrayList<String>();
+        for (NameValuePair each : formParams) {
+            if (each.getName().equals(name)) {
+                strings.add(each.getValue());
+            }
+        }
+        if (!Collection.class.isAssignableFrom(parameterClass)) {
+            if (strings.size() > 0) {
+                paramV = objectMapper.convertValue(strings.get(0), parameterClass);
+            }
+        } else {
+            // Jackson's Object mapper comes with a good transformer
+            paramV = objectMapper.convertValue(strings, parameterClass);
+        }
+        return paramV;
     }
 
     private static boolean consumesSpecificType(Consumes annotation, String type) {

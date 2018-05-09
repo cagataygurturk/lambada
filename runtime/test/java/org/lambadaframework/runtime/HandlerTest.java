@@ -263,7 +263,7 @@ public class HandlerTest {
                 "  \"package\": \"org.lambadaframework\",\n" +
                 "  \"pathTemplate\": \"/{id}\",\n" +
                 "  \"method\": \"POST\",\n" +
-                "  \"requestBody\": \"test\",\n" +
+                "  \"requestBody\": \"123\",\n" +
                 "  \"path\": {\n" +
                 "    \"id\": \"123\"\n" +
                 "  },\n" +
@@ -280,7 +280,7 @@ public class HandlerTest {
         Response response = handler.handleRequest(exampleRequest, getContext());
 
         assertEquals("201", response.getErrorMessage());
-        assertEquals("test", response.getEntity());
+        assertEquals("123", response.getEntity());
     }
 
 
