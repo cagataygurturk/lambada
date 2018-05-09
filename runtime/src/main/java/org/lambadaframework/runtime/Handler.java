@@ -48,7 +48,7 @@ public class Handler
 
     @Override
     public Response handleRequest(Request request, Context context) {
-
+        Object invoke;
         try {
             logger.debug("Request started with " + request + " and " + context);
 
@@ -57,11 +57,12 @@ public class Handler
 
             logger.debug("Matching request to a resource handler.");
             ResourceMethod matchedResourceMethod = getRouter().route(request);
+            invoke = ResourceMethodInvoker.invoke(matchedResourceMethod, request, context);
 
-            logger.debug("Returning result.");
-            return Response.buildFromJAXRSResponse(ResourceMethodInvoker.invoke(matchedResourceMethod, request, context));
         } catch (Exception ex) {
             return ErrorHandler.getErrorResponse(ex);
         }
+        logger.debug("Returning result.");
+        return Response.buildFromJAXRSResponse(invoke);
     }
 }

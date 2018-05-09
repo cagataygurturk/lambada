@@ -100,6 +100,19 @@ public class HandlerTest {
                     .entity(jsonEntity)
                     .build();
         }
+
+        @POST
+        @Path("{id}/error")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public javax.ws.rs.core.Response createEntityWithStatus401(
+                String jsonString
+        ) {
+
+            return javax.ws.rs.core.Response
+                    .status(401)
+                    .entity(jsonString)
+                    .build();
+        }
     }
 
     private Router getMockRouter(String methodName, Class<?>... parameterTypes) throws NoSuchMethodException {
@@ -310,6 +323,38 @@ public class HandlerTest {
 
         assertEquals("201", response.getErrorMessage());
         assertEquals(1, ((NewEntityRequest) response.getEntity()).id);
+    }
+
+    @Test
+    public void testWith401ExceptionResult()
+            throws Exception {
+
+        Request exampleRequest = getRequest("{\n" +
+                "  \"package\": \"org.lambadaframework\",\n" +
+                "  \"pathTemplate\": \"/{id}/error\",\n" +
+                "  \"method\": \"POST\",\n" +
+                "  \"requestBody\": \"{}\",\n" +
+                "  \"path\": {\n" +
+                "    \"id\": \"123\"\n" +
+                "  },\n" +
+                "  \"querystring\": {\n" +
+                "        \"query1\": \"test3\",\n" +
+                "    \"query2\": \"test\"\n" +
+                "  },\n" +
+                "  \"header\": {}\n" +
+                "}");
+
+
+        Handler handler = new Handler();
+        handler.setRouter(getMockRouter("createEntityWithStatus401", String.class));
+        try {
+            handler.handleRequest(exampleRequest, getContext());
+            fail("Should have thrown an excpetion");
+        } catch(RuntimeException e) {
+            assertTrue(e.getMessage().contains("401"));
+        }
+
+
     }
 
 }
