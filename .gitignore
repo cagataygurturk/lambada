@@ -6,3 +6,4 @@ target
 .project
 .classpath
 .settings
+/bin/

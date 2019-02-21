@@ -5,7 +5,7 @@
 
     <groupId>org.lambadaframework</groupId>
     <artifactId>lambada</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.6-cors</version>
     <packaging>pom</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
