@@ -9,6 +9,7 @@ Lambada framework is a REST framework that implements [JAX-RS](https://jax-rs-sp
 * Support for the most common JAX-RS annotations.
 * XML based configuration for Lambda function including VPC, custom execution role
 * Support for multiple stages and regions.
+* Support for CORS and Custom Response Headers (using native JAX RS Response.header())
 
 Lambada consists of a runtime module, a local simulator and finally a maven plugin to configure and deploy the whole project to API Gateway.
 
