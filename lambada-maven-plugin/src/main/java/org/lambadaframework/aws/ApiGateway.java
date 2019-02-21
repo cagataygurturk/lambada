@@ -67,7 +67,12 @@ public class ApiGateway extends AWSTools {
             "}";
 
 
-    protected final String OUTPUT_TEMPLATE = "$input.json('$.entity')";
+    protected final String OUTPUT_TEMPLATE = 
+    		"$input.json('$.entity')\n" + 
+    		"#set($map = $util.parseJson($input.json('$.headers')))\n" + 
+    		"#foreach ($mapEntry in $map.entrySet())\n" + 
+    		"#set($context.responseOverride.header[\"${mapEntry.key}\"] = \"${mapEntry.value}\")\n" + 
+    		"#end\n";
 
     protected final String AUTHORIZATION_TYPE = "NONE";
     protected final String INVOCATION_METHOD = "POST";
