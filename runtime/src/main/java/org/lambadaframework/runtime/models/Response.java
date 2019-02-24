@@ -29,7 +29,15 @@ public class Response implements Serializable {
     protected Object entity;
 
 
-    public static Response buildFromJAXRSResponse(Object response) {
+    public Response(int code, String message) {
+    	this.code = code;
+    	this.entity = message;
+	}
+
+	public Response() {
+	}
+
+	public static Response buildFromJAXRSResponse(Object response) {
 
         Response outputResponse = new Response();
 
