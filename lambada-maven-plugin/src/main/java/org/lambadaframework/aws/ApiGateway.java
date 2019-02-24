@@ -520,6 +520,7 @@ public class ApiGateway extends AWSTools {
         String packageName = jerseyMethod.getInvocable().getHandler().getHandlerClass().getPackage().getName();
         Map<String, String> requestTemplates = new LinkedHashMap<>();
         requestTemplates.put(MediaType.APPLICATION_JSON, INPUT_TEMPLATE.replace(PACKAGE_VARIABLE, packageName));
+        requestTemplates.put(MediaType.TEXT_PLAIN, INPUT_TEMPLATE.replace(PACKAGE_VARIABLE, packageName));
         return requestTemplates;
     }
 
