@@ -4,15 +4,11 @@
     <parent>
         <groupId>org.lambadaframework</groupId>
         <artifactId>lambada</artifactId>
-        <version>0.0.6</version>
+        <version>0.0.6-cors</version>
     </parent>
 
     <artifactId>lambada-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
-
-    <properties>
-        <aws-sdk.version>1.11.9</aws-sdk.version>
-    </properties>
 
     <name>Lambada Deploying Plugin</name>
 

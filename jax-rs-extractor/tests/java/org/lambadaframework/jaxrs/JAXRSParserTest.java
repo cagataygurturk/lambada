@@ -6,6 +6,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.junit.Test;
@@ -43,8 +45,24 @@ public class JAXRSParserTest {
         }
         assertEquals(6, totalMethod);
 
+        Collections.sort(resourceList, new PathComparator());
+
+        assertEquals("/resource1", resourceList.get(0).getPath());
         assertEquals("/resource1", resourceList.get(1).getPath());
         assertEquals("/resource1/{id}", resourceList.get(2).getPath());
         assertEquals("/resource1/{id}/users", resourceList.get(3).getPath());
+    }
+
+    private class PathComparator implements Comparator<Resource> {
+
+        @Override
+        public int compare(Resource o1, Resource o2) {
+            return o1.getPath().compareTo(o2.getPath());
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return false;
+        }
     }
 }

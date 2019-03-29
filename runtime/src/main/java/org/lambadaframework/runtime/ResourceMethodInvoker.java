@@ -20,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ResourceMethodInvoker {
@@ -69,6 +70,8 @@ public class ResourceMethodInvoker {
         Invocable invocable = resourceMethod.getInvocable();
 
         Method method = invocable.getHandlingMethod();
+        logger.debug("Method is " + method.toString());
+        
         Class<?> clazz = invocable.getHandler().getHandlerClass();
 
         Object instance = clazz.newInstance();
@@ -101,7 +104,7 @@ public class ResourceMethodInvoker {
             /**
              * Query parameter
              */
-            if (parameter.isAnnotationPresent(QueryParam.class)) {
+            else if (parameter.isAnnotationPresent(QueryParam.class)) {
                 QueryParam annotation = parameter.getAnnotation(QueryParam.class);
                 varargs.add(toObject(
                         request.getQueryParams().get(annotation.value()), parameterClass
@@ -112,7 +115,7 @@ public class ResourceMethodInvoker {
             /**
              * Query parameter
              */
-            if (parameter.isAnnotationPresent(HeaderParam.class)) {
+            else if (parameter.isAnnotationPresent(HeaderParam.class)) {
                 HeaderParam annotation = parameter.getAnnotation(HeaderParam.class);
                 varargs.add(toObject(
                         request.getRequestHeaders().get(annotation.value()), parameterClass
@@ -120,7 +123,12 @@ public class ResourceMethodInvoker {
                 );
             }
 
-            if (consumesAnnotation != null && consumesSpecificType(consumesAnnotation, MediaType.APPLICATION_JSON)) {
+            /**
+             * text/plain is treated the same as application/json, in order to avoid pre-flight CORS OPTION request
+             * 
+             */
+            else if (consumesAnnotation != null && consumesSpecificType(consumesAnnotation, 
+            			Arrays.asList(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN))) {
                 if (parameterClass == String.class) {
                     //Pass raw request body
                     varargs.add(request.getRequestBody());
@@ -140,19 +148,28 @@ public class ResourceMethodInvoker {
             /**
              * Lambda Context can be automatically injected
              */
-            if (parameter.getType() == Context.class) {
+            else if (parameter.getType() == Context.class) {
                 varargs.add(lambdaContext);
             }
+                        
+            /**
+             * last resort
+             */
+            else {
+            	throw new IllegalArgumentException("Can't handle parameter type [" + parameter.getType() + "]");
+            }
         }
-
+        
+        logger.debug("Varargs = " + varargs);
+        
         return method.invoke(instance, varargs.toArray());
     }
 
-    private static boolean consumesSpecificType(Consumes annotation, String type) {
+    private static boolean consumesSpecificType(Consumes annotation, List<String> types) {
 
         String[] consumingTypes = annotation.value();
         for (String consumingType : consumingTypes) {
-            if (type.equals(consumingType)) {
+            if (types.contains(consumingType)) {
                 return true;
             }
         }
