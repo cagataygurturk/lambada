@@ -1,5 +1,21 @@
 package org.lambadaframework.aws;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+
+import org.lambadaframework.deployer.Deployment;
+import org.lambadaframework.jaxrs.JAXRSParser;
+import org.lambadaframework.jaxrs.model.Resource;
+import org.lambadaframework.jaxrs.model.ResourceMethod;
+
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.ClientConfiguration;
@@ -10,25 +26,11 @@ import com.amazonaws.retry.RetryPolicy;
 import com.amazonaws.services.apigateway.AmazonApiGateway;
 import com.amazonaws.services.apigateway.AmazonApiGatewayClient;
 import com.amazonaws.services.apigateway.model.*;
-import org.lambadaframework.deployer.Deployment;
-import org.lambadaframework.jaxrs.model.Resource;
-import org.lambadaframework.jaxrs.model.ResourceMethod;
-import org.lambadaframework.jaxrs.JAXRSParser;
-
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 
 public class ApiGateway extends AWSTools {
 
-
-    protected static final int API_LIMIT = 500;
+	protected static final int API_LIMIT = 500;
 
     protected static final String PACKAGE_VARIABLE = "<PACKAGE>";
 
@@ -66,8 +68,7 @@ public class ApiGateway extends AWSTools {
             "      #end\n" +
             "}";
 
-
-    protected final String OUTPUT_TEMPLATE = 
+    protected final String OUTPUT_JSON = 
     		"$input.json('$.entity')\n" + 
     		"#set($map = $util.parseJson($input.json('$.headers')))\n" + 
     		"#foreach ($mapEntry in $map.entrySet())\n" + 
@@ -496,7 +497,7 @@ public class ApiGateway extends AWSTools {
                         .withResourceId(apiGatewayResource.getId())
                         .withHttpMethod(httpMethod)
                         .withSelectionPattern(selectionPattern)
-                        .withResponseTemplates(getResponseTemplate())
+                        .withResponseTemplates(getResponseTemplate(method))
                         .withStatusCode(String.valueOf(responseCode))
                 );
 
@@ -505,13 +506,33 @@ public class ApiGateway extends AWSTools {
         });
     }
 
+    private static final List<MediaType> BINARY_TYPES = Arrays.asList(
+    		new MediaType[] {
+    			MediaType.APPLICATION_OCTET_STREAM_TYPE,
+    			new MediaType("image", "jpeg"),
+    			new MediaType("image", "png")
+    		});
 
-    private Map<String, String> getResponseTemplate() {
+    private Map<String, String> getResponseTemplate(ResourceMethod method) {
 
         Map<String, String> responseTemplate = new LinkedHashMap<>();
-
-        responseTemplate.put(MediaType.APPLICATION_JSON, OUTPUT_TEMPLATE);
-
+        
+        if(method.getProducedTypes().size() > 0 && BINARY_TYPES.contains(method.getProducedTypes().get(0))) {
+        	if(method.getProducedTypes().size() != 1) {
+        		throw new IllegalArgumentException("Ambiguous Produces(MediaType) annotations.");
+        	}
+        	MediaType primaryType = method.getProducedTypes().get(0);
+        	if(!method.getInvocable().getRawResponseType().isAssignableFrom(byte[].class)) {
+        		throw new IllegalArgumentException(primaryType + " requires a byte[] return.");
+        	}
+            responseTemplate.put(MediaType.APPLICATION_JSON, 
+            	String.format(
+            		"$util.base64Decode($input.json('$.entity'))\n" + 
+            	    "#set($context.responseOverride.header['Content-Type'] = '%s')\n", primaryType.toString()));
+        }
+        else {
+        	responseTemplate.put(MediaType.APPLICATION_JSON, OUTPUT_JSON);
+        }
         return responseTemplate;
     }
 
