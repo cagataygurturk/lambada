@@ -9,6 +9,7 @@ Lambada framework is a REST framework that implements [JAX-RS](https://jax-rs-sp
 * Support for the most common JAX-RS annotations.
 * XML based configuration for Lambda function including VPC, custom execution role
 * Support for multiple stages and regions.
+* Support for CORS and Custom Response Headers (using native JAX RS Response.header())
 
 Lambada consists of a runtime module, a local simulator and finally a maven plugin to configure and deploy the whole project to API Gateway.
 
@@ -77,7 +78,7 @@ The configuration values should be present under maven plugin's configuration.
     <plugins>
         <plugin>
             <groupId>org.lambadaframework</groupId>
-            <artifactId>maven-plugin</artifactId>
+            <artifactId>lambada-maven-plugin</artifactId>
             <version>0.0.6</version>
             <configuration>
 	            ...

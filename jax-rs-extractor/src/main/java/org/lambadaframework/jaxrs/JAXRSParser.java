@@ -106,7 +106,8 @@ public class JAXRSParser {
             final String classSeperator = ".";
 
 
-            final String jarPath = clazz.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+            final URL location = clazz.getProtectionDomain().getCodeSource().getLocation();
+			final String jarPath = new File(location.toURI()).getAbsolutePath();
 
             if (jarPath.endsWith(".jar")) {
                 /**
@@ -115,7 +116,7 @@ public class JAXRSParser {
                 return getClassesInJarFile(jarPath);
             }
 
-            final String packagePath = jarPath + packageName.replace(classSeperator, File.separator);
+            final String packagePath = jarPath + File.separator + packageName.replace(classSeperator, File.separator);
 
             Files.walkFileTree(Paths.get(packagePath), new SimpleFileVisitor<Path>() {
                 @Override
@@ -125,7 +126,7 @@ public class JAXRSParser {
                     String fileName = file.toString();
 
                     if (fileName.endsWith(classExtension)) {
-                        String className = fileName.replace(jarPath, blank).replace(File.separator, classSeperator);
+                        String className = fileName.replace(jarPath + File.separator, blank).replace(File.separator, classSeperator);
                         className = className.substring(0, className.length() - classExtension.length());
 
                         try {

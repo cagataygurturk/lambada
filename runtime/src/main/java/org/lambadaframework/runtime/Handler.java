@@ -3,7 +3,6 @@ package org.lambadaframework.runtime;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.lambadaframework.jaxrs.model.ResourceMethod;
-import org.lambadaframework.runtime.errorhandling.ErrorHandler;
 import org.lambadaframework.runtime.models.Request;
 import org.lambadaframework.runtime.models.Response;
 import org.lambadaframework.runtime.router.Router;
@@ -61,7 +60,8 @@ public class Handler
             logger.debug("Returning result.");
             return Response.buildFromJAXRSResponse(ResourceMethodInvoker.invoke(matchedResourceMethod, request, context));
         } catch (Exception ex) {
-            return ErrorHandler.getErrorResponse(ex);
+        	logger.fatal(request.toString(), ex);
+        	return new Response(502, "Internal Error: Uncaught exception logged by framework.");
         }
     }
 }
